@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AHA / TMC — Admin Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green-dark:#2d3327;--green-mid:#4a6741;--green-hover:#3d5635;--olive:#6b7c59;
+  --cream:#f5f4ed;--cream-lt:#faf9f7;--beige:#c9b896;--beige-stone:#e8e6dd;--green-soft:#e8f5e9;
+  --text-dark:#1a1a16;--text-mid:#4a4a3a;--text-lt:#6b7265;--white:#ffffff;--border:#d4d0c8;
+  --red:#c0392b;--red-bg:#fdf2f2;--gold:#b8860b;--gold-bg:#fdf8e8;
+  --success:#27ae60;--success-bg:#eafaf1;--blue:#2980b9;--blue-bg:#e8f4f8;
+  --shadow:0 2px 8px rgba(0,0,0,0.08);--shadow-lg:0 4px 16px rgba(0,0,0,0.12);--radius:8px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;color:var(--text-dark);background:var(--cream-lt);min-height:100vh;display:flex;}
+
+/* SIDEBAR */
+.sidebar{width:220px;background:var(--green-dark);color:var(--cream);position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100;display:flex;flex-direction:column;}
+.sidebar-brand{padding:1.25rem 1rem;border-bottom:1px solid rgba(255,255,255,0.1);}
+.sidebar-brand h2{font-size:0.9375rem;margin-bottom:0.15rem;}
+.sidebar-brand p{font-size:0.7rem;color:var(--beige);}
+.sidebar-nav{flex:1;padding:0.75rem 0;}
+.sidebar-item{display:flex;align-items:center;gap:0.625rem;padding:0.625rem 1rem;color:rgba(255,255,255,0.7);cursor:pointer;font-size:0.8125rem;font-weight:500;transition:all 0.15s;border-left:3px solid transparent;}
+.sidebar-item:hover{background:rgba(255,255,255,0.05);color:var(--cream);}
+.sidebar-item.active{background:rgba(255,255,255,0.1);color:var(--white);border-left-color:var(--gold);}
+.sidebar-item .icon{width:20px;text-align:center;font-size:0.875rem;}
+.sidebar-item .badge-count{margin-left:auto;background:var(--red);color:var(--white);font-size:0.6rem;font-weight:700;padding:0.1rem 0.4rem;border-radius:2rem;}
+.sidebar-footer{padding:1rem;border-top:1px solid rgba(255,255,255,0.1);font-size:0.7rem;color:rgba(255,255,255,0.4);}
+
+/* MAIN */
+.main{margin-left:220px;flex:1;min-height:100vh;}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0.75rem 1.5rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50;}
+.topbar h1{font-size:1.125rem;}
+.topbar-actions{display:flex;gap:0.5rem;align-items:center;}
+.content{padding:1.5rem;}
+
+/* PAGE */
+.page{display:none;}.page.active{display:block;}
+
+/* CARDS */
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem;box-shadow:var(--shadow);}
+.card-header{font-size:0.9375rem;font-weight:600;margin-bottom:0.75rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0.75rem;margin-bottom:1.25rem;}
+.stat{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;box-shadow:var(--shadow);}
+.stat-num{font-size:1.75rem;font-weight:700;color:var(--green-mid);}
+.stat-label{font-size:0.7rem;color:var(--text-lt);text-transform:uppercase;letter-spacing:0.04em;margin-top:0.15rem;}
+.stat-num.warn{color:var(--gold);}
+.stat-num.danger{color:var(--red);}
+
+/* TABLE */
+.data-table{width:100%;border-collapse:collapse;font-size:0.8125rem;}
+.data-table th{text-align:left;padding:0.5rem 0.75rem;border-bottom:2px solid var(--border);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-lt);font-weight:600;}
+.data-table td{padding:0.625rem 0.75rem;border-bottom:1px solid var(--cream);vertical-align:middle;}
+.data-table tr:hover{background:var(--cream);}
+.data-table tr{cursor:pointer;}
+
+/* SEARCH */
+.search-bar{display:flex;gap:0.5rem;margin-bottom:1rem;}
+.search-bar input{flex:1;padding:0.5rem 0.75rem;border:1px solid var(--border);border-radius:6px;font-size:0.875rem;font-family:inherit;}
+.search-bar input:focus{outline:none;border-color:var(--green-mid);}
+.search-bar select{padding:0.5rem 0.75rem;border:1px solid var(--border);border-radius:6px;font-size:0.8125rem;font-family:inherit;background:var(--white);}
+
+/* FORMS */
+.fg{margin-bottom:0.875rem;}
+.fg label{display:block;font-size:0.75rem;font-weight:600;margin-bottom:0.25rem;color:var(--text-mid);}
+.fg input,.fg select,.fg textarea{width:100%;padding:0.5rem 0.625rem;border:1px solid var(--border);border-radius:4px;font-size:0.8125rem;font-family:inherit;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--green-mid);}
+.fg textarea{min-height:70px;resize:vertical;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:0.625rem;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:0.3rem;padding:0.45rem 0.875rem;border:none;border-radius:4px;font-size:0.8125rem;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:inherit;}
+.btn-primary{background:var(--green-mid);color:var(--white);}.btn-primary:hover{background:var(--green-hover);}
+.btn-secondary{background:var(--beige-stone);color:var(--text-dark);}.btn-secondary:hover{background:var(--beige);}
+.btn-outline{background:none;border:1px solid var(--border);color:var(--text-mid);}.btn-outline:hover{background:var(--cream);}
+.btn-gold{background:var(--gold);color:var(--white);}.btn-gold:hover{background:#a07608;}
+.btn-danger{background:var(--red);color:var(--white);}.btn-danger:hover{background:#a93226;}
+.btn-success{background:var(--success);color:var(--white);}.btn-success:hover{background:#219a52;}
+.btn-sm{padding:0.3rem 0.625rem;font-size:0.75rem;}
+.btn-full{width:100%;}
+
+/* STATUS BADGES */
+.status{display:inline-block;padding:0.15rem 0.5rem;border-radius:3px;font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:0.03em;}
+.status-active{background:var(--success-bg);color:var(--success);}
+.status-pending{background:var(--gold-bg);color:var(--gold);}
+.status-lapsed{background:var(--red-bg);color:var(--red);}
+.status-cancelled{background:var(--beige-stone);color:var(--text-lt);}
+.status-approved{background:var(--success-bg);color:var(--success);}
+.status-rejected{background:var(--red-bg);color:var(--red);}
+.status-review{background:var(--blue-bg);color:var(--blue);}
+.status-on{background:var(--success-bg);color:var(--success);}
+.status-off{background:var(--red-bg);color:var(--red);}
+
+/* TOGGLE */
+.toggle{position:relative;width:40px;height:22px;cursor:pointer;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;top:0;left:0;right:0;bottom:0;background:var(--border);border-radius:22px;transition:0.3s;}
+.toggle-slider::before{content:'';position:absolute;width:16px;height:16px;left:3px;bottom:3px;background:var(--white);border-radius:50%;transition:0.3s;}
+.toggle input:checked+.toggle-slider{background:var(--success);}
+.toggle input:checked+.toggle-slider::before{transform:translateX(18px);}
+
+/* MODAL */
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:200;display:none;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--white);border-radius:var(--radius);padding:1.5rem;max-width:560px;width:90%;max-height:85vh;overflow-y:auto;box-shadow:var(--shadow-lg);}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border);}
+.modal-header h2{font-size:1.0625rem;}
+.modal-close{background:none;border:none;font-size:1.25rem;cursor:pointer;color:var(--text-lt);padding:0.25rem;}
+.modal-actions{display:flex;gap:0.5rem;justify-content:flex-end;margin-top:1rem;padding-top:0.75rem;border-top:1px solid var(--border);}
+
+/* ALERTS */
+.alert{padding:0.625rem 0.875rem;border-radius:6px;margin-bottom:0.75rem;font-size:0.8rem;line-height:1.4;}
+.alert-info{background:var(--blue-bg);color:#2c6e8a;border:1px solid #b8dce8;}
+.alert-success{background:var(--success-bg);color:#1e7e34;border:1px solid #a3d9b1;}
+.alert-warning{background:var(--gold-bg);color:#7d6608;border:1px solid #e8d48a;}
+
+/* REVIEW CARD */
+.review-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:0.75rem;box-shadow:var(--shadow);}
+.review-card .review-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;}
+.review-img{max-width:100%;max-height:300px;border-radius:6px;border:1px solid var(--border);margin-bottom:0.75rem;}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .sidebar{width:100%;height:auto;position:relative;flex-direction:row;overflow-x:auto;}
+  .sidebar-brand{display:none;}
+  .sidebar-nav{display:flex;padding:0;overflow-x:auto;}
+  .sidebar-item{white-space:nowrap;border-left:none;border-bottom:3px solid transparent;padding:0.75rem;}
+  .sidebar-item.active{border-bottom-color:var(--gold);}
+  .sidebar-footer{display:none;}
+  .main{margin-left:0;}
+  body{flex-direction:column;}
+  .form-row{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN GATE -->
+<div id="login-gate" style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--cream-lt);z-index:9999;display:flex;align-items:center;justify-content:center;">
+  <div style="background:#fff;border:1px solid #d4d0c8;border-radius:8px;padding:2rem;max-width:380px;width:90%;box-shadow:0 4px 16px rgba(0,0,0,0.12);text-align:center;">
+    <div style="width:56px;height:56px;background:#2d3327;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;font-size:1.375rem;">&#x1F512;</div>
+    <h2 style="font-size:1.125rem;margin-bottom:0.25rem;">Admin Portal</h2>
+    <p style="font-size:0.8125rem;color:#6b7265;margin-bottom:1.25rem;">AHA / TMC Management</p>
+    <div id="gate-error" style="display:none;background:#fdf2f2;color:#c0392b;border:1px solid #e8a8a8;padding:0.5rem 0.75rem;border-radius:6px;margin-bottom:0.75rem;font-size:0.8125rem;"></div>
+    <div style="text-align:left;margin-bottom:0.75rem;"><label style="display:block;font-size:0.75rem;font-weight:600;margin-bottom:0.25rem;">Email</label><input type="email" id="gate-email" placeholder="admin@email.com" style="width:100%;padding:0.6rem 0.75rem;border:1px solid #d4d0c8;border-radius:6px;font-size:0.875rem;font-family:inherit;"></div>
+    <div style="text-align:left;margin-bottom:1rem;"><label style="display:block;font-size:0.75rem;font-weight:600;margin-bottom:0.25rem;">Password</label><input type="password" id="gate-password" placeholder="Enter password" style="width:100%;padding:0.6rem 0.75rem;border:1px solid #d4d0c8;border-radius:6px;font-size:0.875rem;font-family:inherit;" onkeydown="if(event.key==='Enter')checkGate()"></div>
+    <button onclick="checkGate()" style="width:100%;padding:0.75rem;background:#4a6741;color:#fff;border:none;border-radius:6px;font-size:0.9375rem;font-weight:700;cursor:pointer;font-family:inherit;">Sign In</button>
+  </div>
+</div>
+
+<div class="sidebar">
+  <div class="sidebar-brand"><h2>AHA / TMC Admin</h2><p>Management Portal</p></div>
+  <div class="sidebar-nav">
+    <div class="sidebar-item active" onclick="nav('dashboard',this)"><span class="icon">&#x1F4CA;</span>Dashboard</div>
+    <div class="sidebar-item" onclick="nav('members',this)"><span class="icon">&#x1F464;</span>AHA Members</div>
+    <div class="sidebar-item" onclick="nav('hunters',this)"><span class="icon">&#x1F3AF;</span>Hunter Profiles</div>
+    <div class="sidebar-item" onclick="nav('shooting',this)"><span class="icon">&#x1F3F9;</span>Shooting Reviews</div>
+    <div class="sidebar-item" onclick="nav('licences',this)"><span class="icon">&#x1F4DC;</span>Licence Reviews</div>
+    <div class="sidebar-item" onclick="nav('farmers',this)"><span class="icon">&#x1F33E;</span>Farmer Profiles</div>
+    <div class="sidebar-item" onclick="nav('jobs',this)"><span class="icon">&#x1F4CB;</span>Jobs</div>
+    <div class="sidebar-item" onclick="nav('emails',this)"><span class="icon">&#x2709;</span>Email Log</div>
+    <div class="sidebar-item" onclick="nav('quick',this)"><span class="icon">&#x26A1;</span>Quick Actions</div>
+  </div>
+  <div class="sidebar-footer">Logged in as David Mynott<br>admin@australianhuntingassociation.com.au</div>
+</div>
+
+<div class="main">
+  <div class="topbar"><h1 id="page-title">Dashboard</h1><div id="topbar-actions"></div><span style="font-size:0.75rem;color:var(--text-lt);" id="topbar-date"></span></div>
+  <div class="content">
+    <div class="page active" id="pg-dashboard"><div id="dash-stats" class="stats-grid"></div><div id="dash-panels" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;"></div></div>
+    <div class="page" id="pg-members">
+      <div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:1rem;">
+        <input type="text" placeholder="Search..." id="m-search" oninput="loadMembers()" style="width:250px;padding:0.5rem 0.75rem;border:1px solid var(--border);border-radius:6px;font-size:0.875rem;font-family:inherit;">
+        <select id="m-filter" onchange="loadMembers()" style="padding:0.5rem 0.75rem;border:1px solid var(--border);border-radius:6px;font-size:0.8125rem;font-family:inherit;background:var(--white);">
+          <option value="">All</option><option value="active">Active</option><option value="pending_payment">Pending</option><option value="lapsed">Lapsed</option><option value="cancelled">Cancelled</option>
+        </select>
+        <button class="btn btn-primary" onclick="openAddMember()">+ Add Member</button>
+      </div>
+      <div class="card" style="padding:0;overflow-x:auto;" id="m-table"></div>
+    </div>
+    <div class="page" id="pg-hunters"><div class="search-bar"><input type="text" placeholder="Search hunters..." id="h-search" oninput="loadHunters()"><select id="h-filter" onchange="loadHunters()"><option value="">All</option><option value="live">Live</option><option value="incomplete">Incomplete</option><option value="suspended">Suspended</option></select></div><div class="card" style="padding:0;overflow-x:auto;" id="h-table"></div></div>
+    <div class="page" id="pg-shooting"><div class="search-bar"><select id="s-filter" onchange="loadShootingReviews()"><option value="pending">Pending review</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="">All</option></select></div><div class="card" style="padding:0;overflow-x:auto;" id="s-table"></div></div>
+    <div class="page" id="pg-licences"><div class="search-bar"><select id="l-filter" onchange="loadLicenceReviews()"><option value="unverified">Unverified</option><option value="verified">Verified</option><option value="">All</option></select></div><div class="card" style="padding:0;overflow-x:auto;" id="l-table"></div></div>
+    <div class="page" id="pg-farmers"><div class="search-bar"><input type="text" placeholder="Search farmers..." id="f-search" oninput="loadFarmers()"></div><div class="card" style="padding:0;overflow-x:auto;" id="f-table"></div></div>
+    <div class="page" id="pg-jobs"><div class="search-bar"><input type="text" placeholder="Search jobs..." id="j-search" oninput="loadJobs()"><select id="j-filter" onchange="loadJobs()"><option value="">All</option><option value="open">Open</option><option value="filled">Filled</option><option value="closed">Closed</option></select></div><div class="card" style="padding:0;overflow-x:auto;" id="j-table"></div></div>
+    <div class="page" id="pg-emails"><div class="card" style="padding:0;overflow-x:auto;" id="e-table"></div></div>
+    <div class="page" id="pg-quick"><div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+      <div class="card"><div class="card-header">Activate Membership</div><p style="font-size:0.8125rem;color:var(--text-lt);margin-bottom:0.75rem;">Manually activate a pending member and send welcome email.</p><div class="fg"><label>Member Email</label><input id="qa-email" placeholder="email@example.com"></div><div id="qa-result"></div><button class="btn btn-success btn-full" onclick="qaActivate()">Activate &amp; Send Email</button></div>
+      <div class="card"><div class="card-header">Look Up Member</div><p style="font-size:0.8125rem;color:var(--text-lt);margin-bottom:0.75rem;">Find by number, email, or name.</p><div class="fg"><label>Search</label><input id="qa-lookup" placeholder="AHA-2026-XXXXX or email..."></div><button class="btn btn-primary btn-full" onclick="qaLookup()">Look Up</button><div id="qa-lookup-result" style="margin-top:0.75rem;"></div></div>
+      <div class="card"><div class="card-header">Send Test Email</div><p style="font-size:0.8125rem;color:var(--text-lt);margin-bottom:0.75rem;">Send a test welcome email to verify MailerSend.</p><div class="fg"><label>Email</label><input id="qa-test-email" placeholder="your@email.com"></div><button class="btn btn-primary btn-full" onclick="qaTestEmail()">Send Test</button><div id="qa-test-result" style="margin-top:0.75rem;"></div></div>
+    </div></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal()"><div class="modal" id="modal-content" onclick="event.stopPropagation()"></div></div>
+
+<script>
+// LOGIN
+function checkGate(){var e=document.getElementById("gate-email").value.trim(),p=document.getElementById("gate-password").value;if((e==="david@themarksmenco.com.au"&&p==="DAVIDtmc2025!")||(e==="admin@themarksmenco.com.au"&&p==="ADMINtmc2025!")){document.getElementById("login-gate").style.display="none";sessionStorage.setItem("admin_auth","1")}else{var err=document.getElementById("gate-error");err.textContent="Invalid email or password.";err.style.display="block"}}
+if(sessionStorage.getItem("admin_auth")==="1")document.getElementById("login-gate").style.display="none";
+
+// SUPABASE
+const SB="https://muqnduayrkuoxemmhqgr.supabase.co",SK="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11cW5kdWF5cmt1b3hlbW1ocWdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5NDY1ODgsImV4cCI6MjA4MzUyMjU4OH0.jMmr_R56Pg21hjU53i7w2eAr-nAjP9oSnXTS4pK9gg0";
+const H={"Content-Type":"application/json",apikey:SK,Authorization:"Bearer "+SK};
+async function G(t,p){const r=await fetch(SB+"/rest/v1/"+t+"?"+(p||"select=*"),{headers:H});return r.ok?await r.json():[]}
+async function P(t,d){const r=await fetch(SB+"/rest/v1/"+t,{method:"POST",headers:{...H,Prefer:"return=representation"},body:JSON.stringify(d)});return r.ok?await r.json():null}
+async function U(t,id,d){
+  const r=await fetch(SB+"/rest/v1/"+t+"?id=eq."+id,{method:"PATCH",headers:{...H,Prefer:"return=representation"},body:JSON.stringify(d)});
+  if(r.ok)return{ok:true,data:await r.json()};
+  let msg="";try{msg=await r.text();}catch(e){}
+  return{ok:false,status:r.status,message:msg||r.statusText};
+}
+async function D(t,id){return fetch(SB+"/rest/v1/"+t+"?id=eq."+id,{method:"DELETE",headers:H})}
+
+// NAV
+const titles={dashboard:"Dashboard",members:"AHA Members",hunters:"Hunter Profiles",shooting:"Shooting Reviews",licences:"Licence Reviews",farmers:"Farmer Profiles",jobs:"Jobs",emails:"Email Log",quick:"Quick Actions"};
+function nav(p,el){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById("pg-"+p)?.classList.add("active");document.querySelectorAll(".sidebar-item").forEach(s=>s.classList.remove("active"));if(el)el.classList.add("active");document.getElementById("page-title").textContent=titles[p]||p;var ta=document.getElementById("topbar-actions");if(p==="members"){ta.innerHTML="<button class='btn btn-primary' onclick='openAddMember()'>+ Add Member</button>";}else{ta.innerHTML="";};
+if(p==="dashboard")loadDash();if(p==="members")loadMembers();if(p==="hunters")loadHunters();if(p==="shooting")loadShootingReviews();if(p==="licences")loadLicenceReviews();if(p==="farmers")loadFarmers();if(p==="jobs")loadJobs();if(p==="emails")loadEmails()}
+
+function closeModal(){document.getElementById("modal-overlay").classList.remove("open")}
+function openModal(html){document.getElementById("modal-content").innerHTML=html;document.getElementById("modal-overlay").classList.add("open")}
+const states=["WA","NSW","VIC","QLD","SA","TAS","NT","ACT"];
+function sel(opts,val){return opts.map(o=>"<option"+(o===val?" selected":"")+">"+o+"</option>").join("")}
+function d(v){return v||"\u2014"}
+function fdate(v){return v?new Date(v).toLocaleDateString("en-AU"):"\u2014"}
+
+// DASHBOARD
+let _m=[],_h=[],_f=[],_j=[];
+async function loadDash(){
+  _m=await G("aha_membership","select=*&order=joined_at.desc");
+  _h=await G("hunter_profiles","select=*");
+  _f=await G("farmer_profiles","select=*");
+  _j=await G("jobs","select=*");
+  const emails=await G("email_log","select=*&order=sent_at.desc&limit=5");
+  const ac=_m.filter(m=>m.status==="active").length,pe=_m.filter(m=>m.status==="pending_payment").length;
+  const lh=_h.filter(h=>h.tmc_access).length,af=_f.filter(f=>f.account_active).length;
+  const oj=_j.filter(j=>j.status==="open"||j.status==="open_national").length;
+  document.getElementById("dash-stats").innerHTML="<div class=stat><div class=stat-num>"+_m.length+"</div><div class=stat-label>AHA Members</div></div><div class=stat><div class=stat-num>"+ac+"</div><div class=stat-label>Active</div></div><div class=stat><div class='stat-num "+(pe>0?"warn":"")+"'>"+pe+"</div><div class=stat-label>Pending Payment</div></div><div class=stat><div class=stat-num>"+lh+"</div><div class=stat-label>TMC Hunters</div></div><div class=stat><div class=stat-num>"+af+"</div><div class=stat-label>Farmers</div></div><div class=stat><div class=stat-num>"+oj+"</div><div class=stat-label>Open Jobs</div></div>";
+  document.getElementById("dash-panels").innerHTML="<div class=card><div class=card-header>Recent Members</div>"+(_m.length?_m.slice(0,5).map(m=>"<div style='display:flex;justify-content:space-between;padding:0.375rem 0;border-bottom:1px solid var(--cream);font-size:0.8125rem;'><span>"+d(m.full_name)+"</span><span class='status status-"+(m.status==="active"?"active":"pending")+"'>"+m.status+"</span></div>").join(""):"<p style='font-size:0.8125rem;color:var(--text-lt);padding:1rem 0;'>No members yet.</p>")+"</div><div class=card><div class=card-header>Recent Emails</div>"+(emails.length?emails.map(e=>"<div style='display:flex;justify-content:space-between;padding:0.375rem 0;border-bottom:1px solid var(--cream);font-size:0.8125rem;'><span>"+d(e.email_to)+"</span><span class='status status-"+(e.status==="sent"?"active":"lapsed")+"'>"+e.status+"</span></div>").join(""):"<p style='font-size:0.8125rem;color:var(--text-lt);padding:1rem 0;'>No emails yet.</p>")+"</div>";
+}
+
+// MEMBERS
+async function loadMembers(){
+  const s=(document.getElementById("m-search")?.value||"").toLowerCase(),fi=document.getElementById("m-filter")?.value||"";
+  let p="select=*&order=joined_at.desc";if(fi)p+="&status=eq."+fi;
+  _m=await G("aha_membership",p);
+  let f=_m;if(s)f=f.filter(m=>(m.full_name||"").toLowerCase().includes(s)||(m.email||"").toLowerCase().includes(s)||(m.member_number||"").toLowerCase().includes(s));
+  document.getElementById("m-table").innerHTML=f.length?"<table class=data-table><thead><tr><th>Member #</th><th>Name</th><th>Email</th><th>State</th><th>Status</th><th>Payment</th><th>Joined</th><th></th></tr></thead><tbody>"+f.map(m=>"<tr onclick=\"editMember('"+m.id+"')\"><td style='font-weight:600;font-size:0.75rem;'>"+d(m.member_number)+"</td><td>"+d(m.full_name)+"</td><td style='font-size:0.75rem;'>"+d(m.email)+"</td><td>"+d(m.state)+"</td><td><span class='status status-"+(m.status==="active"?"active":m.status==="pending_payment"?"pending":"lapsed")+"'>"+m.status+"</span></td><td><span class='status status-"+(m.payment_status==="paid"?"active":"pending")+"'>"+d(m.payment_status)+"</span></td><td style='font-size:0.75rem;'>"+fdate(m.joined_at)+"</td><td><button class='btn btn-outline btn-sm'>Edit</button></td></tr>").join("")+"</tbody></table>":"<p style='padding:2rem;text-align:center;color:var(--text-lt);'>No members found.</p>";
+}
+
+function editMember(id){
+  const m=_m.find(x=>x.id===id);if(!m)return;
+  openModal("<div class=modal-header><h2>Edit: "+d(m.full_name)+"</h2><button class=modal-close onclick=closeModal()>&times;</button></div>"
+    +"<div class=form-row><div class=fg><label>Full Name</label><input id=em-name value='"+((m.full_name||"").replace(/'/g,"&#39;"))+"'></div><div class=fg><label>Member Number</label><input id=em-num value='"+(m.member_number||"")+"'></div></div>"
+    +"<div class=form-row><div class=fg><label>Email</label><input id=em-email value='"+(m.email||"")+"'></div><div class=fg><label>Phone</label><input id=em-phone value='"+(m.phone||"")+"'></div></div>"
+    +"<div class=form-row><div class=fg><label>State</label><select id=em-state>"+sel(states,m.state)+"</select></div><div class=fg><label>Status</label><select id=em-status>"+sel(["active","pending_payment","lapsed","cancelled"],m.status)+"</select></div></div>"
+    +"<div class=form-row><div class=fg><label>Payment Status</label><select id=em-pay>"+sel(["paid","pending_payment","failed","refunded"],m.payment_status)+"</select></div><div class=fg><label>Payment Method</label><input id=em-pm value='"+(m.payment_method||"")+"'></div></div>"
+    +"<div class=form-row><div class=fg><label>Payment Ref</label><input id=em-pr value='"+(m.payment_ref||"")+"'></div><div class=fg><label>Square Order ID</label><input id=em-sq value='"+(m.square_order_id||"")+"'></div></div>"
+    +"<div class=form-row><div class=fg><label>Period Start</label><input type=datetime-local id=em-ps value='"+(m.current_period_start?m.current_period_start.slice(0,16):"")+"'></div><div class=fg><label>Period End</label><input type=datetime-local id=em-pe value='"+(m.current_period_end?m.current_period_end.slice(0,16):"")+"'></div></div>"
+    +"<div class=fg><label>Notes</label><textarea id=em-notes>"+(m.notes||"")+"</textarea></div>"
+    +"<div class=modal-actions>"+(m.status==="pending_payment"?"<button class='btn btn-success' onclick=\"activateMbr('"+m.id+"')\">Manually Activate &amp; Generate Email</button>":(m.status==="active"?"<button class='btn btn-outline btn-sm' onclick=\"reissueEmail('"+m.id+"')\">Re-issue Welcome Email</button>":""))+"<button class='btn btn-danger btn-sm' onclick=\"if(confirm('Delete?'))delMbr('"+m.id+"')\">Delete</button><button class='btn btn-outline' onclick=closeModal()>Cancel</button><button class='btn btn-primary' onclick=\"saveMbr('"+m.id+"')\">Save</button></div>");
+}
+
+async function saveMbr(id){
+  const r=await U("aha_membership",id,{full_name:document.getElementById("em-name").value,member_number:document.getElementById("em-num").value||null,email:document.getElementById("em-email").value,phone:document.getElementById("em-phone").value,state:document.getElementById("em-state").value,status:document.getElementById("em-status").value,payment_status:document.getElementById("em-pay").value,payment_method:document.getElementById("em-pm").value||null,payment_ref:document.getElementById("em-pr").value||null,square_order_id:document.getElementById("em-sq").value||null,current_period_start:document.getElementById("em-ps").value||null,current_period_end:document.getElementById("em-pe").value||null,notes:document.getElementById("em-notes").value||null});
+  if(r.ok){closeModal();loadMembers();showToast("Saved \u2713");return;}
+  // Translate common DB errors into plain English
+  let m=r.message||"";
+  if(m.indexOf("square_order_id")>=0||m.indexOf("Payment proof")>=0){
+    alert("BLOCKED BY PAYMENT SAFETY:\n\nYou tried to mark a Square-flow member as paid/active without a square_order_id.\n\nFor MANUAL payments (PayID, bank transfer, cash):\nChange Payment Method from 'square' to 'bank_transfer' (or 'payid'/'manual') FIRST, then save again.\n\nFor Square payments: paste the real Square order ID into the Square Order ID field first.");
+  }else if(r.status===401||r.status===403){
+    alert("Permission denied. Check you're signed into the admin portal.");
+  }else{
+    alert("Save failed.\n\nReason: "+(m||"connection error")+"\n\nNothing was changed.");
+  }
+}
+
+// Lightweight non-blocking toast for quick confirmations
+function showToast(text){
+  let t=document.getElementById("admin-toast");
+  if(!t){
+    t=document.createElement("div");
+    t.id="admin-toast";
+    t.style.cssText="position:fixed;bottom:24px;right:24px;background:#1A2F23;color:#fff;padding:12px 18px;border-radius:6px;font-size:14px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,0.2);z-index:9999;opacity:0;transition:opacity 0.2s;pointer-events:none;";
+    document.body.appendChild(t);
+  }
+  t.textContent=text;
+  t.style.opacity="1";
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>{t.style.opacity="0";},2000);
+}
+
+// Re-issue the welcome email for an already-active member.
+// Same email content as the activation flow, but no DB changes.
+function reissueEmail(id){
+  const m=_m.find(x=>x.id===id);
+  if(!m){alert("Member not found.");return;}
+  if(!m.member_number){
+    alert("This member doesn't have a member number yet. Activate them first.");
+    return;
+  }
+  const periodEnd=m.current_period_end
+    ?new Date(m.current_period_end)
+    :new Date(Date.now()+365*24*60*60*1000);
+  showWelcomeEmailPopup({
+    full_name:m.full_name,
+    first_name:(m.full_name||"").split(" ")[0]||"there",
+    email:m.email,
+    member_number:m.member_number,
+    period_end:periodEnd,
+    payment_method:m.payment_method||"",
+    reference:m.payment_reference||""
+  });
+}
+async function delMbr(id){const m=_m.find(x=>x.id===id);const who=m?(m.full_name+" ("+(m.member_number||"no number")+", "+m.email+")"):"this member";if(!confirm("PERMANENTLY DELETE:\n\n"+who+"\n\nThis cannot be undone. Continue?"))return;const r=await D("aha_membership",id);if(r&&r.ok){closeModal();loadMembers();showToast("Deleted: "+(m?m.full_name:"member"));}else{alert("Delete failed. The member was NOT removed. Check connection and try again.");}}
+async function activateMbr(id){
+  const m=_m.find(x=>x.id===id);
+  if(!m){alert("Member not found.");return;}
+
+  // Step 1: which payment method?
+  const method=prompt(
+    "MANUAL ACTIVATION — "+m.full_name+"\n\n"+
+    "How did they pay?\n\n"+
+    "  bank_transfer   (BSB/account)\n"+
+    "  payid           (PayID)\n"+
+    "  manual          (cash / cheque / other)\n"+
+    "  square          (Square paid but webhook missed — paste order ID)\n\n"+
+    "Type one of: bank_transfer, payid, manual, square",
+    "bank_transfer"
+  );
+  if(!method)return;
+  const cleanMethod=method.trim().toLowerCase();
+  if(["bank_transfer","payid","manual","square"].indexOf(cleanMethod)<0){
+    alert("Unknown method: "+method+"\nUse bank_transfer, payid, manual, or square.");
+    return;
+  }
+
+  // Step 2: Square order ID if Square method
+  let squareOrderId=null;
+  if(cleanMethod==="square"){
+    squareOrderId=prompt("Paste the Square Order ID for "+m.full_name+":\n(Square Dashboard \u2192 Transactions \u2192 the payment \u2192 order details)");
+    if(!squareOrderId)return;
+    squareOrderId=squareOrderId.trim();
+  }
+
+  // Step 3: optional reference (bank statement line / PayID confirmation)
+  const today=new Date().toLocaleDateString("en-AU",{day:"numeric",month:"short",year:"numeric"});
+  const reference=prompt("Payment reference (optional — bank statement line, PayID confirmation, etc.):",
+    cleanMethod==="bank_transfer"?"Bank transfer "+today:
+    cleanMethod==="payid"?"PayID "+today:
+    cleanMethod==="manual"?"Manual payment "+today:
+    "Square (manual entry)");
+
+  // Step 4: assign next AHA member number if they don't have one
+  let memberNumber=m.member_number;
+  if(!memberNumber){
+    const nums=_m.map(x=>x.member_number)
+      .filter(n=>n&&/^AHA-2026-\d+$/.test(n))
+      .map(n=>parseInt(n.slice(9),10));
+    const next=(nums.length?Math.max(...nums):0)+1;
+    memberNumber="AHA-2026-"+String(next).padStart(5,"0");
+  }
+
+  // Step 5: build the update payload
+  const now=new Date();
+  const oneYear=new Date(now.getTime()+365*24*60*60*1000);
+  const updates={
+    payment_method:cleanMethod,
+    payment_status:"paid",
+    status:"active",
+    member_number:memberNumber,
+    payment_reference:reference||null,
+    activated_at:now.toISOString(),
+    current_period_start:now.toISOString(),
+    current_period_end:oneYear.toISOString()
+  };
+  if(squareOrderId)updates.square_order_id=squareOrderId;
+  const existingNotes=m.notes||"";
+  updates.notes=(existingNotes?existingNotes+"\n":"")+
+    "Manually activated ("+cleanMethod+") "+today+" by admin";
+
+  // Step 6: write to database, surface errors clearly
+  const r=await U("aha_membership",id,updates);
+  if(!r.ok){
+    let msg=r.message||"";
+    if(msg.indexOf("square_order_id")>=0||msg.indexOf("Payment proof")>=0){
+      alert("BLOCKED BY PAYMENT SAFETY:\n\nThis member is still on the Square payment rail and needs a Square Order ID. Either:\n\n\u2022 Re-run activation with method='square' and paste the order ID, OR\n\u2022 Re-run activation with method='bank_transfer' / 'payid' / 'manual' if they paid outside Square.");
+    }else if(r.status===401||r.status===403){
+      alert("Permission denied. Check you're signed into the admin portal.");
+    }else{
+      alert("Activation FAILED.\n\nReason: "+(msg||"connection error")+"\n\nNothing was changed. Try again.");
+    }
+    return;
+  }
+
+  // Step 7: ensure a certification row exists (empty - they still earn it)
+  if(m.member_id){
+    try{
+      await fetch(SB+"/rest/v1/aha_certification",{
+        method:"POST",
+        headers:{...H,Prefer:"resolution=ignore-duplicates,return=minimal"},
+        body:JSON.stringify({member_id:m.member_id})
+      });
+    }catch(e){}
+  }
+
+  // Step 8: show the welcome email popup ready to copy
+  showWelcomeEmailPopup({
+    full_name:m.full_name,
+    first_name:(m.full_name||"").split(" ")[0]||"there",
+    email:m.email,
+    member_number:memberNumber,
+    period_end:oneYear,
+    payment_method:cleanMethod,
+    reference:reference||""
+  });
+
+  loadMembers();
+}
+
+// =====================================================
+// WELCOME EMAIL POPUP — generates the activation email
+// in AHA branding, ready to copy/paste/forward.
+// Shows BOTH the rendered HTML (preview) and the
+// plain-text version, plus copy buttons.
+// =====================================================
+function welcomeEmailHTML(p){
+  const periodEnd=new Date(p.period_end).toLocaleDateString("en-AU",{day:"numeric",month:"long",year:"numeric"});
+  return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Welcome to AHA</title></head>'+
+  '<body style="margin:0;padding:0;background-color:#F5F4ED;font-family:\'Helvetica Neue\',Helvetica,Arial,sans-serif;color:#1a1a16;-webkit-font-smoothing:antialiased;">'+
+  '<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">Welcome to the Australian Hunting Association. Your member number is '+p.member_number+' \u2014 use it to create your profile on The Marksmen Co.</div>'+
+  '<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background-color:#F5F4ED;"><tr><td align="center" style="padding:32px 16px;">'+
+  '<table role="presentation" cellpadding="0" cellspacing="0" width="580" style="max-width:580px;width:100%;">'+
+  // Header
+  '<tr><td style="background-color:#1A2F23;padding:32px 40px;border-radius:8px 8px 0 0;text-align:center;">'+
+  '<h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:700;letter-spacing:0.02em;">Australian Hunting Association</h1>'+
+  '<p style="margin:8px 0 0;color:#8C6A3B;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;">Welcome to AHA</p>'+
+  '</td></tr>'+
+  // Body
+  '<tr><td style="background-color:#ffffff;padding:32px 40px;">'+
+  '<p style="margin:0 0 20px;font-size:16px;line-height:1.6;">G\'day '+p.first_name+',</p>'+
+  '<p style="margin:0 0 20px;font-size:16px;line-height:1.6;">Welcome to the Australian Hunting Association. Your membership is now active and your member number is below.</p>'+
+  // Member number card
+  '<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:24px 0;"><tr><td style="background-color:#F5F4ED;border-left:4px solid #8C6A3B;padding:20px 24px;border-radius:4px;">'+
+  '<p style="margin:0 0 6px;color:#6b7265;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;">Your Member Number</p>'+
+  '<p style="margin:0;color:#1A2F23;font-size:24px;font-weight:700;letter-spacing:0.02em;font-family:\'SF Mono\',Menlo,Consolas,monospace;">'+p.member_number+'</p>'+
+  '<p style="margin:8px 0 0;color:#6b7265;font-size:13px;">Membership valid through '+periodEnd+'</p>'+
+  '</td></tr></table>'+
+  // Next steps
+  '<h2 style="margin:32px 0 16px;font-size:18px;font-weight:700;color:#1A2F23;">Your next steps</h2>'+
+  '<table role="presentation" cellpadding="0" cellspacing="0" width="100%">'+
+  // Step 1
+  '<tr><td style="padding:12px 0;border-bottom:1px solid #F5F4ED;vertical-align:top;width:36px;"><span style="display:inline-block;width:28px;height:28px;background-color:#1A2F23;color:#ffffff;border-radius:50%;text-align:center;line-height:28px;font-size:13px;font-weight:700;">1</span></td>'+
+  '<td style="padding:12px 0 12px 12px;border-bottom:1px solid #F5F4ED;"><strong style="display:block;font-size:14px;color:#1a1a16;margin-bottom:2px;">Create your TMC profile</strong>'+
+  '<span style="font-size:13px;color:#6b7265;line-height:1.5;">Go to The Marksmen Co and use your member number above to sign up.</span></td></tr>'+
+  // Step 2
+  '<tr><td style="padding:12px 0;border-bottom:1px solid #F5F4ED;vertical-align:top;"><span style="display:inline-block;width:28px;height:28px;background-color:#1A2F23;color:#ffffff;border-radius:50%;text-align:center;line-height:28px;font-size:13px;font-weight:700;">2</span></td>'+
+  '<td style="padding:12px 0 12px 12px;border-bottom:1px solid #F5F4ED;"><strong style="display:block;font-size:14px;color:#1a1a16;margin-bottom:2px;">Complete Foundation training</strong>'+
+  '<span style="font-size:13px;color:#6b7265;line-height:1.5;">Six modules, takes 2\u20133 hours. Your progress saves as you go.</span></td></tr>'+
+  // Step 3
+  '<tr><td style="padding:12px 0;border-bottom:1px solid #F5F4ED;vertical-align:top;"><span style="display:inline-block;width:28px;height:28px;background-color:#1A2F23;color:#ffffff;border-radius:50%;text-align:center;line-height:28px;font-size:13px;font-weight:700;">3</span></td>'+
+  '<td style="padding:12px 0 12px 12px;border-bottom:1px solid #F5F4ED;"><strong style="display:block;font-size:14px;color:#1a1a16;margin-bottom:2px;">Read the Marksmanship Handbook</strong>'+
+  '<span style="font-size:13px;color:#6b7265;line-height:1.5;">Downloadable PDF. Covers the standards expected of an AHA-certified hunter.</span></td></tr>'+
+  // Step 4
+  '<tr><td style="padding:12px 0;vertical-align:top;"><span style="display:inline-block;width:28px;height:28px;background-color:#1A2F23;color:#ffffff;border-radius:50%;text-align:center;line-height:28px;font-size:13px;font-weight:700;">4</span></td>'+
+  '<td style="padding:12px 0 12px 12px;"><strong style="display:block;font-size:14px;color:#1a1a16;margin-bottom:2px;">Pass the shooting qualification</strong>'+
+  '<span style="font-size:13px;color:#6b7265;line-height:1.5;">5 shots within 75mm at 100m. Upload your results in the portal.</span></td></tr>'+
+  '</table>'+
+  // CTA button
+  '<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:32px 0 16px;"><tr><td align="center">'+
+  '<a href="https://www.themarksmenco.com.au/hunter/" style="display:inline-block;background-color:#8C6A3B;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:6px;font-size:15px;font-weight:700;letter-spacing:0.02em;">Go to The Marksmen Co \u2192</a>'+
+  '</td></tr></table>'+
+  '<p style="margin:24px 0 0;font-size:14px;line-height:1.6;color:#6b7265;">Any questions, just reply to this email \u2014 it comes straight to me.</p>'+
+  '<p style="margin:16px 0 0;font-size:14px;line-height:1.6;">David Mynott<br><span style="color:#6b7265;">Founder, Australian Hunting Association</span></p>'+
+  '</td></tr>'+
+  // Footer
+  '<tr><td style="background-color:#1A2F23;padding:20px 40px;border-radius:0 0 8px 8px;text-align:center;">'+
+  '<p style="margin:0;color:rgba(255,255,255,0.6);font-size:12px;">Australian Hunting Association \u2014 The Standard Behind Responsible Hunting in Australia</p>'+
+  '<p style="margin:8px 0 0;color:rgba(255,255,255,0.4);font-size:11px;">admin@australianhuntingassociation.com.au</p>'+
+  '</td></tr>'+
+  '</table></td></tr></table></body></html>';
+}
+
+function welcomeEmailPlainText(p){
+  const periodEnd=new Date(p.period_end).toLocaleDateString("en-AU",{day:"numeric",month:"long",year:"numeric"});
+  return "G'day "+p.first_name+",\n\n"+
+    "Welcome to the Australian Hunting Association. Your membership is now active.\n\n"+
+    "Your Member Number: "+p.member_number+"\n"+
+    "Membership valid through: "+periodEnd+"\n\n"+
+    "YOUR NEXT STEPS\n\n"+
+    "1. Create your TMC profile\n"+
+    "   Go to https://www.themarksmenco.com.au/hunter/ and use your member number to sign up.\n\n"+
+    "2. Complete Foundation training\n"+
+    "   Six modules, takes 2-3 hours. Your progress saves as you go.\n\n"+
+    "3. Read the Marksmanship Handbook\n"+
+    "   Downloadable PDF in the portal.\n\n"+
+    "4. Pass the shooting qualification\n"+
+    "   5 shots within 75mm at 100m. Upload your results.\n\n"+
+    "Any questions, just reply to this email.\n\n"+
+    "David Mynott\n"+
+    "Founder, Australian Hunting Association\n"+
+    "admin@australianhuntingassociation.com.au";
+}
+
+function showWelcomeEmailPopup(p){
+  const subject="Welcome to AHA \u2014 Your member number is "+p.member_number;
+  const htmlBody=welcomeEmailHTML(p);
+  const textBody=welcomeEmailPlainText(p);
+  // Build a mailto link as a convenience (works for short bodies; longer goes via copy)
+  const mailto="mailto:"+encodeURIComponent(p.email||"")+
+    "?subject="+encodeURIComponent(subject)+
+    "&body="+encodeURIComponent(textBody);
+
+  openModal(
+    '<div class=modal-header><h2>Activated &mdash; '+(p.full_name||"")+'</h2>'+
+    '<button class=modal-close onclick=closeModal()>&times;</button></div>'+
+
+    '<div style="background:#eafaf1;border-left:4px solid #27ae60;padding:14px 16px;border-radius:6px;margin-bottom:18px;">'+
+    '<p style="margin:0;font-size:14px;line-height:1.5;"><strong>'+p.full_name+'</strong> is now active.<br>'+
+    'Member number: <strong style="font-family:ui-monospace,Menlo,monospace;background:#fff;padding:2px 6px;border-radius:3px;">'+p.member_number+'</strong><br>'+
+    'Payment: '+p.payment_method+(p.reference?' \u2014 '+p.reference:'')+'</p>'+
+    '</div>'+
+
+    '<h3 style="margin:0 0 8px;font-size:14px;font-weight:700;">Welcome email ready to send</h3>'+
+    '<p style="margin:0 0 14px;font-size:13px;color:var(--text-lt);">Copy the email below and send it to <strong>'+(p.email||"(no email on file)")+'</strong>. The preview shows what they\'ll see.</p>'+
+
+    // Subject row
+    '<div class="fg"><label>Subject</label>'+
+    '<div style="display:flex;gap:8px;">'+
+    '<input id="we-subject" readonly value="'+subject.replace(/"/g,"&quot;")+'" style="flex:1;font-family:ui-monospace,Menlo,monospace;font-size:13px;">'+
+    '<button class="btn btn-outline btn-sm" onclick="copyTo(\'we-subject\',this)">Copy</button>'+
+    '</div></div>'+
+
+    // To row
+    '<div class="fg"><label>To</label>'+
+    '<div style="display:flex;gap:8px;">'+
+    '<input id="we-to" readonly value="'+(p.email||"").replace(/"/g,"&quot;")+'" style="flex:1;font-family:ui-monospace,Menlo,monospace;font-size:13px;">'+
+    '<button class="btn btn-outline btn-sm" onclick="copyTo(\'we-to\',this)">Copy</button>'+
+    '</div></div>'+
+
+    // Tab switcher
+    '<div style="display:flex;gap:6px;margin:18px 0 8px;border-bottom:1px solid var(--border);">'+
+    '<button id="we-tab-preview" class="btn btn-sm btn-primary" onclick="weTab(\'preview\')">Preview</button>'+
+    '<button id="we-tab-html" class="btn btn-sm btn-outline" onclick="weTab(\'html\')">HTML source</button>'+
+    '<button id="we-tab-text" class="btn btn-sm btn-outline" onclick="weTab(\'text\')">Plain text</button>'+
+    '</div>'+
+
+    // Preview pane (rendered email)
+    '<div id="we-pane-preview" style="border:1px solid var(--border);border-radius:6px;overflow:hidden;max-height:480px;overflow-y:auto;">'+
+    '<iframe id="we-iframe" style="width:100%;height:600px;border:0;display:block;"></iframe>'+
+    '</div>'+
+
+    // HTML source pane
+    '<div id="we-pane-html" style="display:none;">'+
+    '<textarea id="we-html-text" readonly style="width:100%;height:300px;font-family:ui-monospace,Menlo,monospace;font-size:11px;line-height:1.4;">'+htmlBody.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+'</textarea>'+
+    '<button class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="copyTo(\'we-html-text\',this)">Copy HTML</button>'+
+    '</div>'+
+
+    // Plain text pane
+    '<div id="we-pane-text" style="display:none;">'+
+    '<textarea id="we-plain-text" readonly style="width:100%;height:300px;font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.5;">'+textBody.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+'</textarea>'+
+    '<button class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="copyTo(\'we-plain-text\',this)">Copy plain text</button>'+
+    '</div>'+
+
+    // Send-via row
+    '<div class="modal-actions">'+
+    '<a href="'+mailto+'" class="btn btn-outline" target="_blank">Open in mail app (text version)</a>'+
+    '<button class="btn btn-primary" onclick="closeModal()">Done</button>'+
+    '</div>'
+  );
+
+  // Inject the rendered email into the iframe
+  setTimeout(function(){
+    const ifr=document.getElementById("we-iframe");
+    if(ifr&&ifr.contentDocument){
+      ifr.contentDocument.open();
+      ifr.contentDocument.write(htmlBody);
+      ifr.contentDocument.close();
+    }
+  },50);
+}
+
+function weTab(which){
+  ["preview","html","text"].forEach(t=>{
+    const pane=document.getElementById("we-pane-"+t);
+    const btn=document.getElementById("we-tab-"+t);
+    if(pane)pane.style.display=(t===which)?"block":"none";
+    if(btn){btn.classList.toggle("btn-primary",t===which);btn.classList.toggle("btn-outline",t!==which);}
+  });
+}
+
+function copyTo(id,btn){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.select&&el.select();
+  try{
+    navigator.clipboard.writeText(el.value).then(()=>{
+      const original=btn.textContent;
+      btn.textContent="Copied \u2713";
+      setTimeout(()=>btn.textContent=original,1500);
+    });
+  }catch(e){
+    document.execCommand&&document.execCommand("copy");
+    btn.textContent="Copied";
+  }
+}
+
+function openAddMember(){
+  openModal("<div class=modal-header><h2>Add New Member</h2><button class=modal-close onclick=closeModal()>&times;</button></div>"
+    +"<div class=form-row><div class=fg><label>Full Name *</label><input id=am-name placeholder='First Last'></div><div class=fg><label>Email *</label><input id=am-email placeholder='email@example.com'></div></div>"
+    +"<div class=form-row><div class=fg><label>Phone</label><input id=am-phone placeholder='04XX XXX XXX'></div><div class=fg><label>State</label><select id=am-state><option value=''>Select</option>"+sel(states,"")+"</select></div></div>"
+    +"<div class=form-row><div class=fg><label>Status</label><select id=am-status><option value='active'>Active</option><option value='pending_payment'>Pending Payment</option></select></div><div class=fg><label>Payment Status</label><select id=am-pay><option value='paid'>Paid</option><option value='pending_payment'>Pending</option></select></div></div>"
+    +"<div class=fg><label>Payment Method</label><input id=am-pm placeholder='square / legacy / manual'></div>"
+    +"<div class=fg><label>Notes</label><textarea id=am-notes placeholder='Optional notes...'></textarea></div>"
+    +"<div class=modal-actions><button class='btn btn-outline' onclick=closeModal()>Cancel</button><button class='btn btn-primary' onclick=addMember()>Add Member</button></div>");
+}
+
+async function addMember(){
+  var name=document.getElementById("am-name").value.trim();
+  var email=document.getElementById("am-email").value.trim();
+  if(!name||!email){alert("Name and email required.");return;}
+  var data={full_name:name,email:email,phone:document.getElementById("am-phone").value.trim()||null,state:document.getElementById("am-state").value||"WA",status:document.getElementById("am-status").value,payment_status:document.getElementById("am-pay").value,payment_method:document.getElementById("am-pm").value||"manual",notes:document.getElementById("am-notes").value||null,current_period_start:new Date().toISOString(),current_period_end:new Date(Date.now()+365*24*60*60*1000).toISOString(),activated_at:new Date().toISOString()};
+  var result=await P("aha_membership",data);
+  if(result&&result.length>0){
+    // Generate member number
+    var all=await G("aha_membership","select=member_number&member_number=not.is.null&order=member_number.desc&limit=1");
+    var nextNum=3;
+    if(all.length>0){var last=all[0].member_number;var num=parseInt(last.split("-")[2]);nextNum=num+1;}
+    var newNum="AHA-2026-"+String(nextNum).padStart(5,"0");
+    await U("aha_membership",result[0].id,{member_number:newNum});
+    alert("Member added: "+newNum+" — "+name);
+  } else {
+    alert("Error adding member. Check if email already exists.");
+  }
+  closeModal();loadMembers();
+}
+
+// HUNTERS
+async function loadHunters(){
+  const s=(document.getElementById("h-search")?.value||"").toLowerCase(),fi=document.getElementById("h-filter")?.value||"";
+  let p="select=*&order=created_at.desc";if(fi)p+="&profile_status=eq."+fi;
+  _h=await G("hunter_profiles",p);
+  let f=_h;if(s)f=f.filter(h=>(h.display_name||"").toLowerCase().includes(s)||(h.email||"").toLowerCase().includes(s)||(h.member_number||"").toLowerCase().includes(s));
+  document.getElementById("h-table").innerHTML=f.length?"<table class=data-table><thead><tr><th>Name</th><th>Member #</th><th>Location</th><th>Radius</th><th>Licence</th><th>Profile</th><th>TMC</th><th></th></tr></thead><tbody>"+f.map(h=>"<tr onclick=\"editHunter('"+h.id+"')\"><td>"+d(h.display_name)+"</td><td style='font-size:0.75rem;'>"+d(h.member_number)+"</td><td>"+d(h.location)+", "+d(h.state)+"</td><td>"+(h.service_radius_km||"—")+"km</td><td><span class='status "+(h.licence_verified?"status-active":"status-pending")+"'>"+(h.licence_verified?"Verified":"Pending")+"</span></td><td><span class='status status-"+(h.profile_status==="live"?"active":"pending")+"'>"+d(h.profile_status)+"</span></td><td><span class='status status-"+(h.tmc_access?"on":"off")+"'>"+(h.tmc_access?"On":"Off")+"</span></td><td><button class='btn btn-outline btn-sm'>Edit</button></td></tr>").join("")+"</tbody></table>":"<p style='padding:2rem;text-align:center;color:var(--text-lt);'>No hunter profiles yet. Hunters create profiles when they sign up on TMC.</p>";
+}
+
+function editHunter(id){
+  const h=_h.find(x=>x.id===id);if(!h)return;
+  const sp=Array.isArray(h.species)?h.species.join(", "):"";
+  openModal("<div class=modal-header><h2>Edit Hunter: "+d(h.display_name)+"</h2><button class=modal-close onclick=closeModal()>&times;</button></div>"
+    +"<div style='background:var(--gold-bg);border:2px solid var(--gold);border-radius:var(--radius);padding:1rem;margin-bottom:1rem;'><h3 style='font-size:0.875rem;color:var(--gold);margin-bottom:0.75rem;'>Firearms Licence</h3>"
+    +"<div class=form-row><div class=fg><label>Licence #</label><input id=eh-ln value='"+(h.licence_number||"")+"'></div><div class=fg><label>State</label><select id=eh-ls><option value=''>-</option>"+sel(states,h.licence_state)+"</select></div></div>"
+    +"<div class=form-row><div class=fg><label>Expiry</label><input type=date id=eh-le value='"+(h.licence_expiry||"")+"'></div><div class=fg><label>Verified</label><label class=toggle style='margin-top:0.5rem;'><input type=checkbox id=eh-lv "+(h.licence_verified?"checked":"")+"><span class=toggle-slider></span></label></div></div></div>"
+    +"<div class=form-row><div class=fg><label>Display Name</label><input id=eh-name value='"+((h.display_name||"").replace(/'/g,"&#39;"))+"'></div><div class=fg><label>Member #</label><input id=eh-mn value='"+(h.member_number||"")+"'></div></div>"
+    +"<div class=form-row><div class=fg><label>Email</label><input id=eh-email value='"+(h.email||"")+"'></div><div class=fg><label>Phone</label><input id=eh-phone value='"+(h.phone||"")+"'></div></div>"
+    +"<div class=form-row><div class=fg><label>Location</label><input id=eh-loc value='"+(h.location||"")+"'></div><div class=fg><label>State</label><select id=eh-state>"+sel(states,h.state)+"</select></div></div>"
+    +"<div class=form-row><div class=fg><label>Radius (km)</label><select id=eh-rad>"+sel(["200","400","600","800","1000"],String(h.service_radius_km||400))+"</select></div><div class=fg><label>Insurance</label><select id=eh-ins>"+sel(["none","individual","ssaa"],h.insurance_type)+"</select></div></div>"
+    +"<div class=fg><label>Bio</label><textarea id=eh-bio>"+(h.bio||"")+"</textarea></div>"
+    +"<div class=fg><label>Species (comma separated)</label><input id=eh-sp value='"+sp.replace(/'/g,"&#39;")+"'></div>"
+    +"<div class=form-row><div class=fg><label>Profile Status</label><select id=eh-ps>"+sel(["incomplete","live","flagged","suspended"],h.profile_status)+"</select></div><div class=fg><label>TMC Access</label><label class=toggle style='margin-top:1.25rem;'><input type=checkbox id=eh-tmc "+(h.tmc_access?"checked":"")+"><span class=toggle-slider></span></label></div></div>"
+    +"<div class=modal-actions><button class='btn btn-danger btn-sm' onclick=\"if(confirm('Delete?'))delHunter('"+h.id+"')\">Delete</button><button class='btn btn-outline' onclick=closeModal()>Cancel</button><button class='btn btn-primary' onclick=\"saveHunter('"+h.id+"')\">Save</button></div>");
+}
+
+async function saveHunter(id){const sp=document.getElementById("eh-sp").value.split(",").map(s=>s.trim()).filter(Boolean);await U("hunter_profiles",id,{display_name:document.getElementById("eh-name").value,member_number:document.getElementById("eh-mn").value||null,email:document.getElementById("eh-email").value,phone:document.getElementById("eh-phone").value,location:document.getElementById("eh-loc").value,state:document.getElementById("eh-state").value,service_radius_km:parseInt(document.getElementById("eh-rad").value),insurance_type:document.getElementById("eh-ins").value,bio:document.getElementById("eh-bio").value||null,species:sp,profile_status:document.getElementById("eh-ps").value,tmc_access:document.getElementById("eh-tmc").checked,licence_number:document.getElementById("eh-ln").value||null,licence_state:document.getElementById("eh-ls").value||null,licence_expiry:document.getElementById("eh-le").value||null,licence_verified:document.getElementById("eh-lv").checked,updated_at:new Date().toISOString()});closeModal();loadHunters()}
+async function delHunter(id){await D("hunter_profiles",id);closeModal();loadHunters()}
+
+// =====================================================
+// SHOOTING REVIEWS — review and approve pending shooting test submissions
+// =====================================================
+let _sr=[];
+async function loadShootingReviews(){
+  const filter=document.getElementById("s-filter")?.value||"pending";
+  // Pull certification rows joined with member info
+  let query="select=*,aha_membership!inner(member_id,member_number,full_name,email,phone,state)";
+  if(filter)query+="&shooting_test_status=eq."+filter;
+  query+="&order=shooting_test_submitted_at.desc.nullslast";
+  _sr=await G("aha_certification",query)||[];
+  const tb=document.getElementById("s-table");
+  if(!_sr.length){tb.innerHTML="<p style='padding:2rem;text-align:center;color:var(--text-lt);'>No shooting submissions to review.</p>";return;}
+  tb.innerHTML="<table class=data-table><thead><tr><th>Member #</th><th>Name</th><th>Submitted</th><th>Status</th><th>Foundation</th><th></th></tr></thead><tbody>"+
+    _sr.map(r=>{
+      const m=r.aha_membership||{};
+      const status=r.shooting_test_status||"not_submitted";
+      const submitted=r.shooting_test_submitted_at?fdate(r.shooting_test_submitted_at):"—";
+      const foundation=r.foundation_status||"not_started";
+      const statusClass=status==="approved"?"active":status==="rejected"?"lapsed":status==="pending"?"pending":"lapsed";
+      return "<tr onclick=\"viewShooting('"+r.id+"')\"><td style='font-weight:600;font-size:0.75rem;'>"+d(m.member_number)+"</td><td>"+d(m.full_name)+"</td><td style='font-size:0.75rem;'>"+submitted+"</td><td><span class='status status-"+statusClass+"'>"+status+"</span></td><td><span class='status status-"+(foundation==="completed"?"active":"pending")+"'>"+foundation+"</span></td><td><button class='btn btn-outline btn-sm'>Review</button></td></tr>";
+    }).join("")+"</tbody></table>";
+}
+
+function viewShooting(certId){
+  const r=_sr.find(x=>x.id===certId);
+  if(!r)return;
+  const m=r.aha_membership||{};
+  const status=r.shooting_test_status||"not_submitted";
+  const foundation=r.foundation_status||"not_started";
+  const submitted=r.shooting_test_submitted_at?fdate(r.shooting_test_submitted_at):"Not yet submitted";
+  const photoUrl=r.shooting_test_photo_url||"";
+  const photoBlock=photoUrl
+    ? "<a href='"+photoUrl+"' target='_blank'><img src='"+photoUrl+"' style='max-width:100%;max-height:380px;border:1px solid var(--border);border-radius:6px;display:block;' alt='Target photo'></a><p style='font-size:0.75rem;color:var(--text-lt);margin-top:0.375rem;'>Click image to open full size</p>"
+    : "<div style='padding:1.5rem;background:var(--cream);border-radius:6px;text-align:center;color:var(--text-lt);font-size:0.875rem;'>No photo attached. Submission may be a Virtual-Shot result &mdash; check Notes below.</div>";
+  const notes=r.shooting_notes||r.notes||"<em style='color:var(--text-lt);'>No notes provided.</em>";
+  const canApprove=status==="pending"||status==="rejected";
+  const canReject=status==="pending"||status==="approved";
+  openModal(
+    "<div class=modal-header><h2>Shooting Review &mdash; "+d(m.full_name)+"</h2><button class=modal-close onclick=closeModal()>&times;</button></div>"+
+    "<div style='display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;font-size:0.875rem;'>"+
+    "<div><strong>Member Number:</strong><br>"+d(m.member_number)+"</div>"+
+    "<div><strong>Email / Phone:</strong><br>"+d(m.email)+"<br>"+d(m.phone)+"</div>"+
+    "<div><strong>State:</strong><br>"+d(m.state)+"</div>"+
+    "<div><strong>Submitted:</strong><br>"+submitted+"</div>"+
+    "<div><strong>Foundation training:</strong><br><span class='status status-"+(foundation==="completed"?"active":"pending")+"'>"+foundation+"</span></div>"+
+    "<div><strong>Current status:</strong><br><span class='status status-"+(status==="approved"?"active":status==="rejected"?"lapsed":"pending")+"'>"+status+"</span></div>"+
+    "</div>"+
+    "<h3 style='font-size:0.875rem;font-weight:700;margin:1rem 0 0.5rem;'>Target / Virtual-Shot evidence</h3>"+
+    photoBlock+
+    "<h3 style='font-size:0.875rem;font-weight:700;margin:1rem 0 0.5rem;'>Notes from member</h3>"+
+    "<div style='padding:0.75rem;background:var(--cream);border-radius:6px;font-size:0.875rem;line-height:1.5;'>"+notes+"</div>"+
+    "<div style='background:#fff8dc;border-left:4px solid var(--gold);padding:0.75rem 1rem;border-radius:6px;margin-top:1rem;font-size:0.8125rem;line-height:1.5;'>"+
+    "<strong>The AHA standard:</strong> 5 bullet holes grouped within 75mm at 100 metres. Targets up to 2 years old are accepted. Anywhere lawful, safe access exists is acceptable &mdash; range, farm, station, or via Virtual-Shot mount."+
+    "</div>"+
+    "<div class=modal-actions>"+
+    (canReject?"<button class='btn btn-danger' onclick=\"rejectShooting('"+r.id+"')\">Reject</button>":"")+
+    "<button class='btn btn-outline' onclick=closeModal()>Cancel</button>"+
+    (canApprove?"<button class='btn btn-success' onclick=\"approveShooting('"+r.id+"')\">Approve</button>":"")+
+    "</div>"
+  );
+}
+
+async function approveShooting(certId){
+  const r=_sr.find(x=>x.id===certId);
+  if(!r){alert("Record not found.");return;}
+  const m=r.aha_membership||{};
+  if(!confirm("Approve "+m.full_name+"'s shooting test?\n\nThis sets shooting_test_status to 'approved' and (if Foundation training is also complete) issues their AHA certification."))return;
+  const now=new Date().toISOString();
+  const updates={
+    shooting_test_status:"approved",
+    shooting_test_reviewed_at:now,
+    shooting_qualified:true,
+    updated_at:now
+  };
+  // If both training and shooting now done, flip certified
+  if(r.foundation_status==="completed"||r.training_complete){
+    updates.certified=true;
+    updates.certificate_issued_at=now;
+    updates.certification_date=now;
+    if(!r.certificate_number){
+      // Issue a certificate number — same sequence as member numbers but with CERT prefix
+      const existing=await G("aha_certification","select=certificate_number&certificate_number=not.is.null");
+      const nums=(existing||[]).map(x=>x.certificate_number).filter(n=>n&&/^AHA-CERT-2026-\d+$/.test(n)).map(n=>parseInt(n.slice(14),10));
+      const next=(nums.length?Math.max(...nums):0)+1;
+      updates.certificate_number="AHA-CERT-2026-"+String(next).padStart(5,"0");
+    }
+  }
+  const upd=await U("aha_certification",certId,updates);
+  if(!upd.ok){alert("Approval failed.\n\nReason: "+(upd.message||"unknown")+"\n\nNothing was changed.");return;}
+  closeModal();
+  loadShootingReviews();
+  showToast(updates.certified?(m.full_name+" certified \u2713 "+updates.certificate_number):(m.full_name+" approved \u2713"));
+}
+
+async function rejectShooting(certId){
+  const r=_sr.find(x=>x.id===certId);
+  if(!r){alert("Record not found.");return;}
+  const m=r.aha_membership||{};
+  const reason=prompt("Reason for rejection (will be visible to the member):\n\nExamples:\n\u2022 Target shows shots outside the 75mm grouping\n\u2022 Distance not confirmed\n\u2022 Image unclear\n\u2022 Insufficient evidence\n\nThis will reset their status so they can resubmit.","");
+  if(reason===null)return;
+  const now=new Date().toISOString();
+  const existingNotes=r.shooting_notes||"";
+  const upd=await U("aha_certification",certId,{
+    shooting_test_status:"rejected",
+    shooting_qualified:false,
+    shooting_test_reviewed_at:now,
+    updated_at:now,
+    shooting_notes:(existingNotes?existingNotes+"\n":"")+"Rejected "+new Date().toLocaleDateString("en-AU")+": "+reason
+  });
+  if(!upd.ok){alert("Rejection failed.\n\nReason: "+(upd.message||"unknown"));return;}
+  closeModal();
+  loadShootingReviews();
+  showToast(m.full_name+" rejected \u2014 they can resubmit");
+}
+
+// =====================================================
+// LICENCE REVIEWS — verify hunter firearms licence uploads
+// =====================================================
+let _lr=[];
+async function loadLicenceReviews(){
+  const filter=document.getElementById("l-filter")?.value||"unverified";
+  let query="select=*&licence_number=not.is.null&order=updated_at.desc";
+  _lr=(await G("hunter_profiles",query))||[];
+  if(filter==="unverified")_lr=_lr.filter(h=>!h.licence_verified);
+  else if(filter==="verified")_lr=_lr.filter(h=>h.licence_verified);
+  const tb=document.getElementById("l-table");
+  if(!_lr.length){tb.innerHTML="<p style='padding:2rem;text-align:center;color:var(--text-lt);'>No licence submissions to review.</p>";return;}
+  tb.innerHTML="<table class=data-table><thead><tr><th>Member #</th><th>Name</th><th>Licence #</th><th>State</th><th>Expiry</th><th>Verified</th><th></th></tr></thead><tbody>"+
+    _lr.map(h=>{
+      const verified=h.licence_verified;
+      const expiryDate=h.licence_expiry?new Date(h.licence_expiry):null;
+      const expired=expiryDate&&expiryDate<new Date();
+      const expiry=h.licence_expiry?(fdate(h.licence_expiry)+(expired?" EXPIRED":"")):"—";
+      return "<tr onclick=\"viewLicence('"+h.id+"')\"><td style='font-weight:600;font-size:0.75rem;'>"+d(h.member_number)+"</td><td>"+d(h.display_name)+"</td><td style='font-size:0.75rem;font-family:ui-monospace,Menlo,monospace;'>"+d(h.licence_number)+"</td><td>"+d(h.licence_state)+"</td><td style='font-size:0.75rem;color:"+(expired?"var(--red,#c0392b)":"var(--text-dark)")+";'>"+expiry+"</td><td><span class='status status-"+(verified?"active":"pending")+"'>"+(verified?"Verified":"Pending")+"</span></td><td><button class='btn btn-outline btn-sm'>Review</button></td></tr>";
+    }).join("")+"</tbody></table>";
+}
+
+function viewLicence(profileId){
+  const h=_lr.find(x=>x.id===profileId);
+  if(!h)return;
+  const photoUrl=h.licence_photo_url||"";
+  const photoBlock=photoUrl
+    ? "<a href='"+photoUrl+"' target='_blank'><img src='"+photoUrl+"' style='max-width:100%;max-height:380px;border:1px solid var(--border);border-radius:6px;display:block;' alt='Licence photo'></a><p style='font-size:0.75rem;color:var(--text-lt);margin-top:0.375rem;'>Click image to open full size</p>"
+    : "<div style='padding:1.5rem;background:var(--cream);border-radius:6px;text-align:center;color:var(--text-lt);font-size:0.875rem;'>No licence photo uploaded.</div>";
+  const expiryDate=h.licence_expiry?new Date(h.licence_expiry):null;
+  const expired=expiryDate&&expiryDate<new Date();
+  const expiryLine=h.licence_expiry?(fdate(h.licence_expiry)+(expired?" <strong style='color:var(--red,#c0392b);'>EXPIRED</strong>":"")):"—";
+  openModal(
+    "<div class=modal-header><h2>Licence Review &mdash; "+d(h.display_name)+"</h2><button class=modal-close onclick=closeModal()>&times;</button></div>"+
+    "<div style='display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;font-size:0.875rem;'>"+
+    "<div><strong>Member Number:</strong><br>"+d(h.member_number)+"</div>"+
+    "<div><strong>Email / Phone:</strong><br>"+d(h.email)+"<br>"+d(h.phone)+"</div>"+
+    "<div><strong>Licence Number:</strong><br><span style='font-family:ui-monospace,Menlo,monospace;'>"+d(h.licence_number)+"</span></div>"+
+    "<div><strong>Issuing State:</strong><br>"+d(h.licence_state)+"</div>"+
+    "<div><strong>Expiry:</strong><br>"+expiryLine+"</div>"+
+    "<div><strong>Current status:</strong><br><span class='status status-"+(h.licence_verified?"active":"pending")+"'>"+(h.licence_verified?"Verified":"Pending verification")+"</span></div>"+
+    "</div>"+
+    "<h3 style='font-size:0.875rem;font-weight:700;margin:1rem 0 0.5rem;'>Licence photo</h3>"+
+    photoBlock+
+    "<div style='background:#fff8dc;border-left:4px solid var(--gold);padding:0.75rem 1rem;border-radius:6px;margin-top:1rem;font-size:0.8125rem;line-height:1.5;'>"+
+    "<strong>Check before approving:</strong> Name on licence matches member name. Licence number matches what they typed. Licence is current (not expired). Photo is legible. State matches the issuing State they claimed."+
+    "</div>"+
+    "<div class=modal-actions>"+
+    "<button class='btn btn-danger' onclick=\"rejectLicence('"+h.id+"')\">Reject / Reset</button>"+
+    "<button class='btn btn-outline' onclick=closeModal()>Cancel</button>"+
+    (!h.licence_verified?"<button class='btn btn-success' onclick=\"verifyLicence('"+h.id+"')\">Verify</button>":"<button class='btn btn-outline btn-sm' onclick=\"unverifyLicence('"+h.id+"')\">Mark Unverified</button>")+
+    "</div>"
+  );
+}
+
+async function verifyLicence(id){
+  const h=_lr.find(x=>x.id===id);
+  if(!h){alert("Record not found.");return;}
+  if(!confirm("Verify "+h.display_name+"'s firearms licence?\n\nMake sure the name, number, state and expiry all match before confirming."))return;
+  const upd=await U("hunter_profiles",id,{licence_verified:true,updated_at:new Date().toISOString()});
+  if(!upd.ok){alert("Verification failed.\n\nReason: "+(upd.message||"unknown"));return;}
+  closeModal();
+  loadLicenceReviews();
+  showToast(h.display_name+" licence verified \u2713");
+}
+
+async function unverifyLicence(id){
+  const h=_lr.find(x=>x.id===id);
+  if(!h){alert("Record not found.");return;}
+  if(!confirm("Mark "+h.display_name+"'s licence as UNVERIFIED?\n\nUse this if a previously-verified licence has expired or been called into question."))return;
+  const upd=await U("hunter_profiles",id,{licence_verified:false,updated_at:new Date().toISOString()});
+  if(!upd.ok){alert("Update failed.\n\nReason: "+(upd.message||"unknown"));return;}
+  closeModal();
+  loadLicenceReviews();
+  showToast(h.display_name+" marked unverified");
+}
+
+async function rejectLicence(id){
+  const h=_lr.find(x=>x.id===id);
+  if(!h){alert("Record not found.");return;}
+  const reason=prompt("Reason for rejection (visible to the member):\n\nExamples:\n\u2022 Name on licence doesn't match\n\u2022 Photo is unreadable\n\u2022 Licence has expired\n\u2022 State doesn't match\n\nThis will reset their verification status.","");
+  if(reason===null)return;
+  const upd=await U("hunter_profiles",id,{
+    licence_verified:false,
+    updated_at:new Date().toISOString()
+  });
+  if(!upd.ok){alert("Update failed.\n\nReason: "+(upd.message||"unknown"));return;}
+  closeModal();
+  loadLicenceReviews();
+  showToast(h.display_name+" licence reset \u2014 member can re-upload");
+}
+
+// =====================================================
+// FARMERS
+// =====================================================
+async function loadFarmers(){
+  const s=(document.getElementById("f-search")?.value||"").toLowerCase();
+  _f=await G("farmer_profiles","select=*&order=created_at.desc");
+  let f=_f;if(s)f=f.filter(x=>(x.first_name+" "+x.last_name).toLowerCase().includes(s)||(x.email||"").toLowerCase().includes(s)||(x.property_name||"").toLowerCase().includes(s));
+  document.getElementById("f-table").innerHTML=f.length?"<table class=data-table><thead><tr><th>Name</th><th>Property</th><th>Region</th><th>Phone</th><th>Active</th><th></th></tr></thead><tbody>"+f.map(x=>"<tr onclick=\"editFarmer('"+x.id+"')\"><td>"+x.first_name+" "+x.last_name+"</td><td>"+d(x.property_name)+"</td><td>"+d(x.region)+", "+d(x.state)+"</td><td style='font-size:0.75rem;'>"+d(x.phone)+"</td><td><span class='status status-"+(x.account_active?"on":"off")+"'>"+(x.account_active?"On":"Off")+"</span></td><td><button class='btn btn-outline btn-sm'>Edit</button></td></tr>").join("")+"</tbody></table>":"<p style='padding:2rem;text-align:center;color:var(--text-lt);'>No farmer profiles yet. Farmers register through the TMC Landholder Portal.</p>";
+}
+
+function editFarmer(id){
+  const f=_f.find(x=>x.id===id);if(!f)return;
+  openModal("<div class=modal-header><h2>Edit: "+f.first_name+" "+f.last_name+"</h2><button class=modal-close onclick=closeModal()>&times;</button></div>"
+    +"<div class=form-row><div class=fg><label>First Name</label><input id=ef-fn value='"+((f.first_name||"").replace(/'/g,"&#39;"))+"'></div><div class=fg><label>Last Name</label><input id=ef-ln value='"+((f.last_name||"").replace(/'/g,"&#39;"))+"'></div></div>"
+    +"<div class=form-row><div class=fg><label>Email</label><input id=ef-email value='"+(f.email||"")+"'></div><div class=fg><label>Phone</label><input id=ef-phone value='"+(f.phone||"")+"'></div></div>"
+    +"<div class=fg><label>Property Name</label><input id=ef-prop value='"+((f.property_name||"").replace(/'/g,"&#39;"))+"'></div>"
+    +"<div class=form-row><div class=fg><label>Region</label><input id=ef-reg value='"+(f.region||"")+"'></div><div class=fg><label>State</label><select id=ef-state>"+sel(states,f.state)+"</select></div></div>"
+    +"<div class=fg><label>Property Size</label><select id=ef-size><option value=''>-</option>"+sel(["Under 100 hectares","100-500 hectares","500-2,000 hectares","2,000-10,000 hectares","Over 10,000 hectares"],f.property_size)+"</select></div>"
+    +"<div class=fg><label>Active</label><label class=toggle><input type=checkbox id=ef-active "+(f.account_active?"checked":"")+"><span class=toggle-slider></span></label></div>"
+    +"<div class=fg><label>Notes</label><textarea id=ef-notes>"+(f.notes||"")+"</textarea></div>"
+    +"<div class=modal-actions><button class='btn btn-danger btn-sm' onclick=\"if(confirm('Delete?'))delFarmer('"+f.id+"')\">Delete</button><button class='btn btn-outline' onclick=closeModal()>Cancel</button><button class='btn btn-primary' onclick=\"saveFarmer('"+f.id+"')\">Save</button></div>");
+}
+
+async function saveFarmer(id){await U("farmer_profiles",id,{first_name:document.getElementById("ef-fn").value,last_name:document.getElementById("ef-ln").value,email:document.getElementById("ef-email").value,phone:document.getElementById("ef-phone").value,property_name:document.getElementById("ef-prop").value,region:document.getElementById("ef-reg").value,state:document.getElementById("ef-state").value,property_size:document.getElementById("ef-size").value||null,account_active:document.getElementById("ef-active").checked,notes:document.getElementById("ef-notes").value||null,updated_at:new Date().toISOString()});closeModal();loadFarmers()}
+async function delFarmer(id){await D("farmer_profiles",id);closeModal();loadFarmers()}
+
+// JOBS
+async function loadJobs(){
+  const s=(document.getElementById("j-search")?.value||"").toLowerCase(),fi=document.getElementById("j-filter")?.value||"";
+  let p="select=*&order=created_at.desc";if(fi)p+="&status=eq."+fi;
+  _j=await G("jobs",p);
+  let f=_j;if(s)f=f.filter(j=>(j.region||"").toLowerCase().includes(s)||JSON.stringify(j.species||[]).toLowerCase().includes(s));
+  document.getElementById("j-table").innerHTML=f.length?"<table class=data-table><thead><tr><th>Region</th><th>Species</th><th>Farmer</th><th>Urgency</th><th>Interest</th><th>Status</th><th>Posted</th><th></th></tr></thead><tbody>"+f.map(j=>{const sp=Array.isArray(j.species)?j.species.join(", "):j.species||"—";return "<tr onclick=\"editJob('"+j.id+"')\"><td>"+d(j.region)+"</td><td style='font-size:0.75rem;'>"+sp+"</td><td>"+d(j.farmer_name)+"</td><td>"+d(j.urgency)+"</td><td>"+(j.interest_count||0)+"</td><td><span class='status status-"+(j.status==="open"?"active":j.status==="filled"?"on":"lapsed")+"'>"+j.status+"</span></td><td style='font-size:0.75rem;'>"+fdate(j.created_at)+"</td><td><button class='btn btn-outline btn-sm'>Edit</button></td></tr>"}).join("")+"</tbody></table>":"<p style='padding:2rem;text-align:center;color:var(--text-lt);'>No jobs posted yet. Jobs appear when farmers post through the Landholder Portal.</p>";
+}
+
+function editJob(id){
+  const j=_j.find(x=>x.id===id);if(!j)return;
+  const sp=Array.isArray(j.species)?j.species.join(", "):"";
+  openModal("<div class=modal-header><h2>Edit Job: "+d(j.region)+"</h2><button class=modal-close onclick=closeModal()>&times;</button></div>"
+    +"<div class=form-row><div class=fg><label>Region</label><input id=ej-reg value='"+(j.region||"")+"'></div><div class=fg><label>Farmer</label><input id=ej-fn value='"+(j.farmer_name||"")+"'></div></div>"
+    +"<div class=fg><label>Species (comma separated)</label><input id=ej-sp value='"+sp.replace(/'/g,"&#39;")+"'></div>"
+    +"<div class=fg><label>Description</label><textarea id=ej-desc>"+(j.description||"")+"</textarea></div>"
+    +"<div class=form-row><div class=fg><label>Urgency</label><input id=ej-urg value='"+(j.urgency||"")+"'></div><div class=fg><label>Status</label><select id=ej-st>"+sel(["open","open_national","filled","closed"],j.status)+"</select></div></div>"
+    +"<div class=fg><label>Notes</label><textarea id=ej-notes>"+(j.notes||"")+"</textarea></div>"
+    +"<div class=modal-actions><button class='btn btn-danger btn-sm' onclick=\"if(confirm('Delete?'))delJob('"+j.id+"')\">Delete</button><button class='btn btn-outline' onclick=closeModal()>Cancel</button><button class='btn btn-primary' onclick=\"saveJob('"+j.id+"')\">Save</button></div>");
+}
+
+async function saveJob(id){const sp=document.getElementById("ej-sp").value.split(",").map(s=>s.trim()).filter(Boolean);await U("jobs",id,{region:document.getElementById("ej-reg").value,farmer_name:document.getElementById("ej-fn").value,species:sp,description:document.getElementById("ej-desc").value,urgency:document.getElementById("ej-urg").value,status:document.getElementById("ej-st").value,notes:document.getElementById("ej-notes").value||null,updated_at:new Date().toISOString()});closeModal();loadJobs()}
+async function delJob(id){await D("jobs",id);closeModal();loadJobs()}
+
+// EMAILS
+async function loadEmails(){
+  const emails=await G("email_log","select=*&order=sent_at.desc&limit=50");
+  document.getElementById("e-table").innerHTML=emails.length?"<table class=data-table><thead><tr><th>To</th><th>Type</th><th>Subject</th><th>Status</th><th>Sent</th></tr></thead><tbody>"+emails.map(e=>"<tr><td>"+e.email_to+"</td><td>"+e.email_type+"</td><td style='font-size:0.75rem;max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'>"+d(e.subject)+"</td><td><span class='status status-"+(e.status==="sent"?"active":"lapsed")+"'>"+e.status+"</span></td><td style='font-size:0.75rem;'>"+(e.sent_at?new Date(e.sent_at).toLocaleString("en-AU"):"—")+"</td></tr>").join("")+"</tbody></table>":"<p style='padding:2rem;text-align:center;color:var(--text-lt);'>No emails sent yet.</p>";
+}
+
+// QUICK ACTIONS
+async function qaActivate(){const el=document.getElementById("qa-result");el.innerHTML="<div class=alert-info style='padding:0.5rem;border-radius:6px;background:var(--blue-bg);font-size:0.8125rem;'>Activating...</div>";try{const r=await fetch(SB+"/functions/v1/square-payment-webhook",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"payment.updated",data:{object:{payment:{id:"manual-"+Date.now(),status:"COMPLETED",amount_money:{amount:19800,currency:"AUD"},order_id:"manual"}}}})});const d=await r.json();el.innerHTML=d.success?"<div class=alert style='background:var(--success-bg);color:#1e7e34;padding:0.5rem;border-radius:6px;font-size:0.8125rem;'>Activated: "+d.member_number+". Email: "+(d.email_sent?"Sent":"Failed")+"</div>":"<div class=alert style='background:var(--gold-bg);color:#7d6608;padding:0.5rem;border-radius:6px;font-size:0.8125rem;'>Error: "+(d.error||"Unknown")+"</div>"}catch(e){el.innerHTML="<div class=alert style='background:var(--red-bg);color:var(--red);padding:0.5rem;border-radius:6px;font-size:0.8125rem;'>"+e.message+"</div>"}}
+
+async function qaLookup(){const s=(document.getElementById("qa-lookup").value||"").trim().toLowerCase();if(!s)return;const m=await G("aha_membership","select=*");const r=m.find(x=>(x.member_number||"").toLowerCase().includes(s)||(x.email||"").toLowerCase().includes(s)||(x.full_name||"").toLowerCase().includes(s));const el=document.getElementById("qa-lookup-result");el.innerHTML=r?"<div class=card style='margin:0;'><strong>"+r.full_name+"</strong> &middot; "+(r.member_number||"No number")+"<br><span style='font-size:0.8125rem;color:var(--text-lt);'>"+r.email+" &middot; "+(r.phone||"")+" &middot; "+(r.state||"")+"</span><br><span class='status status-"+(r.status==="active"?"active":"pending")+"'>"+r.status+"</span> <span class='status status-"+(r.payment_status==="paid"?"active":"pending")+"'>"+(r.payment_status||"—")+"</span></div>":"<div style='padding:0.5rem;background:var(--gold-bg);border-radius:6px;font-size:0.8125rem;color:#7d6608;'>Not found.</div>"}
+
+async function qaTestEmail(){const email=document.getElementById("qa-test-email").value.trim();if(!email)return;const el=document.getElementById("qa-test-result");el.innerHTML="Sending...";try{const r=await fetch(SB+"/functions/v1/send-welcome-email",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+SK},body:JSON.stringify({email:email,full_name:"Test Member",member_number:"AHA-TEST-00000",expiry_date:"2027-04-28"})});const d=await r.json();el.innerHTML=d.success?"<div style='padding:0.5rem;background:var(--success-bg);border-radius:6px;font-size:0.8125rem;color:#1e7e34;'>Sent to "+email+"</div>":"<div style='padding:0.5rem;background:var(--gold-bg);border-radius:6px;font-size:0.8125rem;color:#7d6608;'>Failed: "+(d.error||"Unknown")+"</div>"}catch(e){el.innerHTML="<div style='padding:0.5rem;background:var(--red-bg);border-radius:6px;font-size:0.8125rem;'>"+e.message+"</div>"}}
+
+// INIT
+document.getElementById("topbar-date").textContent=new Date().toLocaleDateString("en-AU",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+loadDash();
+</script>
+</body>
+</html>
