@@ -584,6 +584,8 @@ body{font-family:'DM Sans',sans-serif;color:var(--text-dark);background:var(--cr
     </div>
     
     <div id="jobs-map"></div>
+
+    <div id="jobs-unmapped-list" style="display:none;margin-top:0.5rem;"></div>
     
     <div id="map-job-detail" style="display:none;">
       <div class="card" id="map-job-card">
@@ -613,10 +615,10 @@ body{font-family:'DM Sans',sans-serif;color:var(--text-dark);background:var(--cr
     <div class="card">
       <div class="card-header">Firearms Licence <span style="font-weight:400;font-size:0.75rem;color:var(--text-lt);">(admin-only, never shown to farmers)</span></div>
       <div class="form-row">
-        <div class="fg"><label>Licence number *</label><input type="text" placeholder="Enter your licence number"></div>
-        <div class="fg"><label>State of issue *</label><select><option value="">Select</option><option>WA</option><option>NSW</option><option>VIC</option><option>QLD</option><option>SA</option><option>TAS</option><option>NT</option><option>ACT</option></select></div>
+        <div class="fg"><label>Licence number *</label><input type="text" id="profile-licence-number" placeholder="Enter your licence number"></div>
+        <div class="fg"><label>State of issue *</label><select id="profile-licence-state"><option value="">Select</option><option>WA</option><option>NSW</option><option>VIC</option><option>QLD</option><option>SA</option><option>TAS</option><option>NT</option><option>ACT</option></select></div>
       </div>
-      <div class="fg"><label>Licence expiry date *</label><input type="date"></div>
+      <div class="fg"><label>Licence expiry date *</label><input type="date" id="profile-licence-expiry"></div>
       <div class="fg"><label>Photo of licence *</label><div class="file-upload" onclick="document.getElementById('licence-file').click()">📄 Click to upload your firearms licence — JPEG, PNG, or PDF</div><input type="file" id="licence-file" style="display:none;" accept=".jpg,.jpeg,.png,.pdf" onchange="licenceFileSelected(this)"><p id="licence-file-name" style="font-size:0.8rem;color:var(--green-mid);margin-top:0.375rem;display:none;"></p></div>
     </div>
 
@@ -630,9 +632,9 @@ body{font-family:'DM Sans',sans-serif;color:var(--text-dark);background:var(--cr
           </div>
         </div>
         <div style="flex:1;min-width:200px;">
-          <div class="fg"><label>Display name *</label><input type="text" placeholder="How you want to appear"></div>
-          <div class="fg"><label>Location *</label><input type="text" placeholder="e.g. Northam, WA"></div>
-          <div class="fg"><label>Service radius *</label><select><option value="">Select</option><option>200 km</option><option>400 km</option><option>600 km</option><option>800 km</option><option>1000 km</option></select></div>
+          <div class="fg"><label>Display name *</label><input type="text" id="profile-display-name" placeholder="How you want to appear"></div>
+          <div class="fg"><label>Location *</label><input type="text" id="profile-location" placeholder="e.g. Northam, WA"></div>
+          <div class="fg"><label>Service radius *</label><select id="profile-service-radius"><option value="">Select</option><option>200 km</option><option>400 km</option><option>600 km</option><option>800 km</option><option>1000 km</option></select></div>
         </div>
       </div>
     </div>
@@ -640,7 +642,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text-dark);background:var(--cr
     <!-- Bio -->
     <div class="card">
       <div class="card-header">About you</div>
-      <div class="fg"><label>Bio *</label><p class="hint">Write in plain English. Where you're based, how long you've been doing this, what kind of country you're comfortable in.</p><textarea placeholder="I've been doing pest management work in the central wheatbelt for about five years, mostly foxes and rabbits..."></textarea></div>
+      <div class="fg"><label>Bio *</label><p class="hint">Write in plain English. Where you're based, how long you've been doing this, what kind of country you're comfortable in.</p><textarea id="profile-bio" placeholder="I've been doing pest management work in the central wheatbelt for about five years, mostly foxes and rabbits..."></textarea></div>
     </div>
 
     <!-- Species -->
@@ -648,15 +650,15 @@ body{font-family:'DM Sans',sans-serif;color:var(--text-dark);background:var(--cr
       <div class="card-header">Species capability</div>
       <p style="font-size:0.8125rem;color:var(--text-lt);margin-bottom:0.75rem;">Select the species you can target. Calibre bands are set by AHA.</p>
       <div class="species-list">
-        <label class="species-row" onclick="toggleSpecies(this)"><input type="checkbox"><div><div class="species-name">Red fox</div><div class="species-calibre">Rifle: .222 Rem – .243 Win · Shotgun: 20ga – 12ga</div></div></label>
-        <label class="species-row" onclick="toggleSpecies(this)"><input type="checkbox"><div><div class="species-name">Feral pig</div><div class="species-calibre">Rifle: .243 Win – .308 Win+</div></div></label>
-        <label class="species-row" onclick="toggleSpecies(this)"><input type="checkbox"><div><div class="species-name">European rabbit</div><div class="species-calibre">Rifle: .17 HMR – .223 Rem · Shotgun: .410 – 12ga</div></div></label>
-        <label class="species-row" onclick="toggleSpecies(this)"><input type="checkbox"><div><div class="species-name">Feral goat</div><div class="species-calibre">Rifle: .243 Win – .308 Win</div></div></label>
-        <label class="species-row" onclick="toggleSpecies(this)"><input type="checkbox"><div><div class="species-name">Feral deer</div><div class="species-calibre">Rifle: .243 Win – .300 Win Mag · Shotgun: 12ga (slugs)</div></div></label>
-        <label class="species-row" onclick="toggleSpecies(this)"><input type="checkbox"><div><div class="species-name">Feral cat</div><div class="species-calibre">Rifle: .22 LR – .223 Rem · Shotgun: .410 – 20ga</div></div></label>
-        <label class="species-row" onclick="toggleSpecies(this)"><input type="checkbox"><div><div class="species-name">Wild dogs / dingoes</div><div class="species-calibre">Rifle: .243 Win – .308 Win · Shotgun: 12ga</div></div></label>
-        <label class="species-row" onclick="toggleSpecies(this)"><input type="checkbox" onchange="togglePermitWarning()"><div><div class="species-name">Kangaroos</div><div class="species-calibre">Rifle: .243 Win – .308 Win (head shot per RSPCA Code)</div></div></label>
-        <label class="species-row" onclick="toggleSpecies(this)"><input type="checkbox" onchange="togglePermitWarning()"><div><div class="species-name">Emus</div><div class="species-calibre">Rifle: .243 Win – .308 Win · Shotgun: 12ga</div></div></label>
+        <label class="species-row" data-species="Red fox" data-calibre="Rifle: .222 Rem – .243 Win · Shotgun: 20ga – 12ga" onclick="toggleSpecies(this)"><input type="checkbox"><div><div class="species-name">Red fox</div><div class="species-calibre">Rifle: .222 Rem – .243 Win · Shotgun: 20ga – 12ga</div></div></label>
+        <label class="species-row" data-species="Feral pig" data-calibre="Rifle: .243 Win – .308 Win+" onclick="toggleSpecies(this)"><input type="checkbox"><div><div class="species-name">Feral pig</div><div class="species-calibre">Rifle: .243 Win – .308 Win+</div></div></label>
+        <label class="species-row" data-species="European rabbit" data-calibre="Rifle: .17 HMR – .223 Rem · Shotgun: .410 – 12ga" onclick="toggleSpecies(this)"><input type="checkbox"><div><div class="species-name">European rabbit</div><div class="species-calibre">Rifle: .17 HMR – .223 Rem · Shotgun: .410 – 12ga</div></div></label>
+        <label class="species-row" data-species="Feral goat" data-calibre="Rifle: .243 Win – .308 Win" onclick="toggleSpecies(this)"><input type="checkbox"><div><div class="species-name">Feral goat</div><div class="species-calibre">Rifle: .243 Win – .308 Win</div></div></label>
+        <label class="species-row" data-species="Feral deer" data-calibre="Rifle: .243 Win – .300 Win Mag · Shotgun: 12ga (slugs)" onclick="toggleSpecies(this)"><input type="checkbox"><div><div class="species-name">Feral deer</div><div class="species-calibre">Rifle: .243 Win – .300 Win Mag · Shotgun: 12ga (slugs)</div></div></label>
+        <label class="species-row" data-species="Feral cat" data-calibre="Rifle: .22 LR – .223 Rem · Shotgun: .410 – 20ga" onclick="toggleSpecies(this)"><input type="checkbox"><div><div class="species-name">Feral cat</div><div class="species-calibre">Rifle: .22 LR – .223 Rem · Shotgun: .410 – 20ga</div></div></label>
+        <label class="species-row" data-species="Wild dogs / dingoes" data-calibre="Rifle: .243 Win – .308 Win · Shotgun: 12ga" onclick="toggleSpecies(this)"><input type="checkbox"><div><div class="species-name">Wild dogs / dingoes</div><div class="species-calibre">Rifle: .243 Win – .308 Win · Shotgun: 12ga</div></div></label>
+        <label class="species-row" data-species="Kangaroos" data-calibre="Rifle: .243 Win – .308 Win (head shot per RSPCA Code)" onclick="toggleSpecies(this)"><input type="checkbox" onchange="togglePermitWarning()"><div><div class="species-name">Kangaroos</div><div class="species-calibre">Rifle: .243 Win – .308 Win (head shot per RSPCA Code)</div></div></label>
+        <label class="species-row" data-species="Emus" data-calibre="Rifle: .243 Win – .308 Win · Shotgun: 12ga" onclick="toggleSpecies(this)"><input type="checkbox" onchange="togglePermitWarning()"><div><div class="species-name">Emus</div><div class="species-calibre">Rifle: .243 Win – .308 Win · Shotgun: 12ga</div></div></label>
       </div>
       <div class="permit-warning" id="permit-warning">I understand that tags or permits may be required for kangaroos and emus depending on the region and jurisdiction. I will verify the regulatory requirements with the landholder before any engagement involving these species.</div>
     </div>
@@ -664,9 +666,9 @@ body{font-family:'DM Sans',sans-serif;color:var(--text-dark);background:var(--cr
     <!-- Optional -->
     <div class="card">
       <div class="card-header">Additional <span style="font-weight:400;font-size:0.75rem;color:var(--text-lt);">(optional)</span></div>
-      <div class="fg"><label>Availability</label><select><option>Available</option><option>Limited availability</option><option>Not currently available</option></select></div>
-      <div class="fg"><label>Public liability insurance</label><select><option value="">Select</option><option>Individual policy</option><option>SSAA</option><option>None declared</option></select></div>
-      <div class="fg"><label>Additional notes</label><textarea placeholder="Anything else farmers should know (optional)" style="min-height:60px;"></textarea></div>
+      <div class="fg"><label>Availability</label><select id="profile-availability"><option>Available</option><option>Limited availability</option><option>Not currently available</option></select></div>
+      <div class="fg"><label>Public liability insurance</label><select id="profile-insurance"><option value="">Select</option><option>Individual policy</option><option>SSAA</option><option>None declared</option></select></div>
+      <div class="fg"><label>Additional notes</label><textarea id="profile-additional-notes" placeholder="Anything else farmers should know (optional)" style="min-height:60px;"></textarea></div>
     </div>
 
     <!-- Contact -->
@@ -1225,28 +1227,24 @@ function applyProfileDraft(d) {
 function populatePreview() {
   const pb = document.getElementById('page-profile-builder');
   if (!pb) return;
+  const v = id => (document.getElementById(id) || {}).value || '';
 
-  // 1. Pull values from the form by placeholder match (matches how submitProfile picks them up)
-  let displayName = '', location = '', bio = '';
-  let serviceRadius = '';
-  pb.querySelectorAll('input[type=text], textarea').forEach(el => {
-    const ph = (el.placeholder || '').toLowerCase();
-    if (ph.includes('how you want to appear')) displayName = el.value.trim();
-    else if (ph.includes('northam')) location = el.value.trim();
-    else if (ph.includes('pest management work')) bio = el.value.trim();
-    else if (ph.includes('radius') || ph.includes('km')) serviceRadius = el.value.trim();
-  });
-  const insurance = (pb.querySelector('select') || {}).value || '';
+  // Pull values from the IDed form fields directly
+  const displayName = v('profile-display-name').trim();
+  const location = v('profile-location').trim();
+  const bio = v('profile-bio').trim();
+  const serviceRadius = v('profile-service-radius').trim();
+  const insurance = v('profile-insurance').trim();
 
   // Fallbacks
   const name = displayName || (currentMember && currentMember.full_name) || 'Your name';
   const initials = name.split(' ').filter(Boolean).slice(0, 2).map(s => s[0]).join('').toUpperCase() || '?';
   const locLine = location
-    ? ('📍 ' + location + (serviceRadius ? ' · Radius: ' + serviceRadius + 'km' : ''))
+    ? ('📍 ' + location + (serviceRadius ? ' · Radius: ' + serviceRadius : ''))
     : '📍 Add your location so farmers know where you\'re based';
   const bioText = bio || 'Add a short bio so farmers know what you do — your experience, the country you work in, the species you\'re comfortable with.';
 
-  // 2. Update the preview DOM
+  // Update preview DOM
   const initialsEl = document.getElementById('preview-initials');
   const nameEl = document.getElementById('preview-name');
   const locEl = document.getElementById('preview-location');
@@ -1260,26 +1258,26 @@ function populatePreview() {
     bioEl.style.fontStyle = bio ? '' : 'italic';
   }
 
-  // 3. Build the species table from any selected species rows
+  // Species table from ticked species-rows
   const speciesTbody = document.getElementById('preview-species');
   if (speciesTbody) {
-    const selected = pb.querySelectorAll('.species-row.selected');
-    if (selected.length) {
-      let rows = '';
-      selected.forEach(row => {
-        const nameEl2 = row.querySelector('.species-name, label, strong');
-        const calibreEl = row.querySelector('.species-calibre, .species-range, span:last-child');
-        const speciesName = (nameEl2 && nameEl2.textContent.trim()) || '';
-        const calibre = (calibreEl && calibreEl.textContent.trim()) || '';
-        if (speciesName) rows += '<tr><td>' + speciesName + '</td><td>' + calibre + '</td></tr>';
-      });
-      speciesTbody.innerHTML = rows || '<tr><td colspan="2" style="color:var(--text-lt);font-style:italic;">Select the species you can target so farmers know what you cover.</td></tr>';
-    } else {
-      speciesTbody.innerHTML = '<tr><td colspan="2" style="color:var(--text-lt);font-style:italic;">Select the species you can target so farmers know what you cover.</td></tr>';
-    }
+    const selected = pb.querySelectorAll('.species-row.selected, .species-row input[type="checkbox"]:checked');
+    const seen = new Set();
+    let rows = '';
+    pb.querySelectorAll('.species-row').forEach(row => {
+      const cb = row.querySelector('input[type="checkbox"]');
+      if (!cb || !cb.checked) return;
+      const name = row.getAttribute('data-species') || '';
+      const calibre = row.getAttribute('data-calibre') || '';
+      if (name && !seen.has(name)) {
+        seen.add(name);
+        rows += '<tr><td>' + name + '</td><td>' + calibre + '</td></tr>';
+      }
+    });
+    speciesTbody.innerHTML = rows || '<tr><td colspan="2" style="color:var(--text-lt);font-style:italic;">Select the species you can target so farmers know what you cover.</td></tr>';
   }
 
-  // 4. Update the insurance badge if there's one in the preview
+  // Insurance badge — display whatever the member selected (or honest placeholder)
   const insuranceBadge = document.querySelector('#page-preview .badge-insured');
   if (insuranceBadge) {
     insuranceBadge.textContent = insurance ? insurance : 'Insurance: not stated';
@@ -1825,39 +1823,72 @@ async function submitProfile() {
     showPage('gate');
     return;
   }
-  const draft = collectProfileDraft();
-  // Pull the key visible fields out of the draft for the structured columns
+  const v = id => (document.getElementById(id) || {}).value || '';
+
+  // Service radius is stored as integer km — strip the " km" suffix
+  let radiusKm = null;
+  const radiusRaw = v('profile-service-radius');
+  if (radiusRaw) {
+    const n = parseInt(radiusRaw, 10);
+    if (!isNaN(n)) radiusKm = n;
+  }
+
+  // Species: collect every ticked species-row using its data-species attribute
+  // Stored as jsonb on hunter_profiles
   const pb = document.getElementById('page-profile-builder');
-  const inputs = pb ? pb.querySelectorAll('input[type=text], textarea') : [];
-  let displayName = '', location = '', bio = '';
-  if (inputs.length) {
-    // display name + location are the first two text inputs in the public profile section
-    inputs.forEach(el => {
-      const ph = (el.placeholder || '').toLowerCase();
-      if (ph.includes('how you want to appear')) displayName = el.value.trim();
-      if (ph.includes('northam')) location = el.value.trim();
-      if (ph.includes('pest management work')) bio = el.value.trim();
+  const speciesList = [];
+  if (pb) {
+    pb.querySelectorAll('.species-row').forEach(row => {
+      const cb = row.querySelector('input[type="checkbox"]');
+      if (cb && cb.checked) {
+        speciesList.push({
+          name: row.getAttribute('data-species') || '',
+          calibre: row.getAttribute('data-calibre') || ''
+        });
+      }
     });
   }
-  const phone = (document.getElementById('profile-phone')||{}).value || '';
-  const email = (document.getElementById('profile-email')||{}).value || '';
+
+  // Licence expiry — only send if filled, the column is `date` type
+  const licenceExpiry = v('profile-licence-expiry') || null;
 
   const row = {
     member_number: currentMember.member_number,
     member_id: currentMember.member_id || null,
-    display_name: displayName || currentMember.full_name,
-    email: email || currentMember.email,
-    phone: phone,
-    location: location,
-    bio: bio,
+
+    // Identity / contact
+    display_name: v('profile-display-name') || currentMember.full_name,
+    email: v('profile-email') || currentMember.email,
+    phone: v('profile-phone'),
+
+    // Location / service
+    location: v('profile-location'),
+    service_radius_km: radiusKm,
+
+    // Bio + additional notes (appended into bio so we don't lose them)
+    bio: v('profile-bio') +
+      (v('profile-additional-notes') ? '\n\nAdditional notes: ' + v('profile-additional-notes') : ''),
+
+    // Firearms licence
+    licence_number: v('profile-licence-number') || null,
+    licence_state: v('profile-licence-state') || null,
+    licence_expiry: licenceExpiry,
+
+    // Insurance
+    insurance_type: v('profile-insurance') || null,
+
+    // Species — JSON array of {name, calibre}
+    species: speciesList,
+
     profile_status: 'live',
     updated_at: new Date().toISOString()
   };
+
   const res = await supabaseUpsert('hunter_profiles', row, 'member_number');
   // Always keep the draft too, so nothing is ever lost
   await saveProfileDraft(true);
   if (res.ok) {
-    alert('Your profile is now live on The Marksmen Co. Farmers can see you immediately. Our team will review your details in the background — if anything needs updating, we\'ll be in touch.');
+    alert('Your profile is now live on The Marksmen Co. Farmers can see you immediately. Our team will review your details in the background \u2014 if anything needs updating, we\'ll be in touch.');
   } else {
     alert('Your details were saved as a draft, but going live failed.\n\n' +
       (res.message ? 'Detail: ' + res.message.substring(0, 300) + '\n\n' : '') +
@@ -1880,16 +1911,40 @@ function expressInterest(btn) {
 // =====================================================
 let jobsMap = null;
 
-const SAMPLE_JOBS = [
-  { id: 1, lat: -31.56, lng: 116.45, region: 'Toodyay, WA', species: ['Red fox', 'European rabbit'], desc: 'Significant fox pressure around lambing paddocks, also rabbits in the eastern boundary.', status: 'open', interest_count: 0, posted_days_ago: 2 },
-  { id: 2, lat: -30.65, lng: 116.02, region: 'Moora, WA', species: ['Feral pig'], desc: 'Pigs coming in from the creek line and destroying fencing and water troughs.', status: 'open', interest_count: 2, posted_days_ago: 5 },
-  { id: 3, lat: -31.89, lng: 116.76, region: 'York, WA', species: ['Red fox'], desc: 'Foxes taking lambs in the south paddock. Open country, good vehicle access.', status: 'open', interest_count: 0, posted_days_ago: 3 },
-  { id: 4, lat: -33.34, lng: 115.64, region: 'Busselton, WA', species: ['European rabbit', 'Red fox'], desc: 'Rabbits damaging vineyard perimeter. Foxes also spotted.', status: 'filled', interest_count: 4, posted_days_ago: 12 },
-  { id: 5, lat: -30.04, lng: 115.87, region: 'Geraldton, WA', species: ['Wild dogs / dingoes'], desc: 'Wild dogs taking calves on the northern boundary. Urgent.', status: 'open', interest_count: 0, posted_days_ago: 9 },
-  { id: 6, lat: -32.55, lng: 117.88, region: 'Narrogin, WA', species: ['Red fox', 'Feral cat'], desc: 'Fox and feral cat pressure around the poultry operation.', status: 'open', interest_count: 1, posted_days_ago: 4 },
-  { id: 7, lat: -31.17, lng: 117.23, region: 'Merredin, WA', species: ['Kangaroos'], desc: 'Roos damaging crop fencing on the eastern paddocks. Need someone experienced.', status: 'open', interest_count: 0, posted_days_ago: 1 },
-  { id: 8, lat: -28.77, lng: 114.62, region: 'Kalbarri, WA', species: ['Feral goat'], desc: 'Goat mob on the station, estimated 40-50 head. Multi-day job.', status: 'open', interest_count: 3, posted_days_ago: 10 },
-];
+// Real jobs loaded from Supabase (was previously SAMPLE_JOBS)
+let LIVE_JOBS = [];
+
+// Fetch all currently-open jobs from the database.
+// Stored in LIVE_JOBS for the map and any other consumers.
+async function loadLiveJobs() {
+  if (typeof SUPABASE_URL === 'undefined' || SUPABASE_URL.includes('YOUR-PROJECT-ID')) return;
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/jobs?status=in.(open,filled)&select=*&order=created_at.desc`, {
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+    });
+    if (!r.ok) return;
+    const rows = await r.json();
+    LIVE_JOBS = (rows || []).map(j => {
+      const created = j.created_at ? new Date(j.created_at) : new Date();
+      const daysAgo = Math.max(0, Math.floor((Date.now() - created.getTime()) / 86400000));
+      let species = [];
+      if (Array.isArray(j.species)) species = j.species;
+      else if (typeof j.species === 'string') { try { species = JSON.parse(j.species); } catch (e) { species = [j.species]; } }
+      return {
+        id: j.id,
+        lat: j.latitude,
+        lng: j.longitude,
+        region: j.region || 'Region not specified',
+        species: species,
+        desc: j.description || '',
+        status: j.status || 'open',
+        interest_count: j.interest_count || 0,
+        posted_days_ago: daysAgo,
+        urgency: j.urgency || ''
+      };
+    });
+  } catch (e) { console.error('loadLiveJobs', e); LIVE_JOBS = []; }
+}
 
 function getJobPinColor(job) {
   if (job.status === 'filled') return '#c0392b'; // Red
@@ -1915,9 +1970,16 @@ function createPinIcon(color) {
   });
 }
 
-function initMap() {
-  if (jobsMap) return; // Already initialized
-  
+async function initMap() {
+  // Always refresh jobs from Supabase
+  await loadLiveJobs();
+
+  if (jobsMap) {
+    refreshMapPins();
+    renderUnmappedJobs();
+    return;
+  }
+
   // Wait for the map container to be visible
   setTimeout(() => {
     const mapEl = document.getElementById('jobs-map');
@@ -1929,41 +1991,120 @@ function initMap() {
       attribution: '© OpenStreetMap',
       maxZoom: 15
     }).addTo(jobsMap);
-    
-    // Add job pins
-    SAMPLE_JOBS.forEach(job => {
-      const color = getJobPinColor(job);
-      const statusLabel = getJobStatusLabel(job);
-      const speciesTags = job.species.map(s => `<span style="background:rgba(0,0,0,0.08);padding:2px 6px;border-radius:3px;font-size:0.7rem;margin-right:3px;">${s}</span>`).join('');
-      
-      const popup = `
-        <div style="font-family:'DM Sans',sans-serif;min-width:200px;max-width:260px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-            <strong style="font-size:0.8125rem;">📍 ${job.region}</strong>
-            <span style="font-size:0.65rem;padding:2px 6px;border-radius:3px;background:${color};color:white;font-weight:600;">${statusLabel}</span>
-          </div>
-          <div style="margin-bottom:6px;">${speciesTags}</div>
-          <p style="font-size:0.75rem;color:#555;line-height:1.4;margin-bottom:6px;">${job.desc}</p>
-          <div style="font-size:0.7rem;color:#888;">Posted ${job.posted_days_ago} day${job.posted_days_ago > 1 ? 's' : ''} ago</div>
-          ${job.status !== 'filled' ? '<button onclick="expressInterestMap('+job.id+')" style="margin-top:8px;width:100%;padding:6px;background:#b8860b;color:white;border:none;border-radius:4px;font-size:0.75rem;font-weight:600;cursor:pointer;">I\'m Interested</button>' : '<p style="font-size:0.75rem;color:#c0392b;font-weight:600;margin-top:6px;text-align:center;">This job has been filled</p>'}
-        </div>
-      `;
-      
-      L.marker([job.lat, job.lng], { icon: createPinIcon(color) })
-        .addTo(jobsMap)
-        .bindPopup(popup);
-    });
-    
+
+    refreshMapPins();
+    renderUnmappedJobs();
+
     // Force map to recalculate size
     setTimeout(() => jobsMap.invalidateSize(), 100);
   }, 200);
 }
 
-function expressInterestMap(jobId) {
-  const job = SAMPLE_JOBS.find(j => j.id === jobId);
-  if (job) {
-    job.interest_count++;
-    alert(`Interest registered for the job in ${job.region}. The farmer will be notified.`);
+function refreshMapPins() {
+  if (!jobsMap) return;
+  // Clear existing markers
+  jobsMap.eachLayer(l => { if (l instanceof L.Marker) jobsMap.removeLayer(l); });
+
+  LIVE_JOBS.forEach(job => {
+    if (job.lat == null || job.lng == null) return;  // unmapped jobs handled in list view
+    const color = getJobPinColor(job);
+    const statusLabel = getJobStatusLabel(job);
+    const speciesTags = (job.species || []).map(s => `<span style="background:rgba(0,0,0,0.08);padding:2px 6px;border-radius:3px;font-size:0.7rem;margin-right:3px;">${s}</span>`).join('');
+
+    const interestBtnHTML = (job.status !== 'filled')
+      ? '<button data-tmc-job-id="' + job.id + '" class="tmc-interest-pin-btn" style="margin-top:8px;width:100%;padding:6px;background:#b8860b;color:white;border:none;border-radius:4px;font-size:0.75rem;font-weight:600;cursor:pointer;">I\'m Interested</button>'
+      : '<p style="font-size:0.75rem;color:#c0392b;font-weight:600;margin-top:6px;text-align:center;">This job has been filled</p>';
+
+    const popup =
+      '<div style="font-family:\'DM Sans\',sans-serif;min-width:200px;max-width:260px;">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'
+      + '<strong style="font-size:0.8125rem;">📍 ' + job.region + '</strong>'
+      + '<span style="font-size:0.65rem;padding:2px 6px;border-radius:3px;background:' + color + ';color:white;font-weight:600;">' + statusLabel + '</span>'
+      + '</div>'
+      + '<div style="margin-bottom:6px;">' + speciesTags + '</div>'
+      + '<p style="font-size:0.75rem;color:#555;line-height:1.4;margin-bottom:6px;">' + (job.desc || '') + '</p>'
+      + '<div style="font-size:0.7rem;color:#888;">Posted ' + job.posted_days_ago + ' day' + (job.posted_days_ago !== 1 ? 's' : '') + ' ago</div>'
+      + interestBtnHTML
+      + '</div>';
+
+    L.marker([job.lat, job.lng], { icon: createPinIcon(color) })
+      .addTo(jobsMap)
+      .bindPopup(popup);
+  });
+
+  // Delegated click for "I'm Interested" buttons inside pin popups + the list view.
+  // Using delegation because popups are rendered dynamically by Leaflet.
+  if (!document.body._tmcInterestHandlerAttached) {
+    document.body.addEventListener('click', function(e) {
+      const btn = e.target.closest && e.target.closest('.tmc-interest-pin-btn');
+      if (btn) {
+        const jid = btn.getAttribute('data-tmc-job-id');
+        if (jid) expressInterestMap(jid);
+      }
+    });
+    document.body._tmcInterestHandlerAttached = true;
+  }
+}
+
+// Show jobs without lat/lng coords in a list below the map so they're not invisible.
+// (Once geocoding is added to farmer signup these will all get pinned automatically.)
+function renderUnmappedJobs() {
+  const container = document.getElementById('jobs-unmapped-list');
+  if (!container) return;
+  const unmapped = LIVE_JOBS.filter(j => j.lat == null || j.lng == null);
+  if (!unmapped.length) {
+    container.innerHTML = '';
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = 'block';
+  container.innerHTML = '<h4 style="font-size:0.875rem;font-weight:700;color:var(--green-dk);margin:1rem 0 0.5rem;">Other jobs (region only, no pin yet)</h4>' +
+    unmapped.map(job => {
+      const color = getJobPinColor(job);
+      const statusLabel = getJobStatusLabel(job);
+      const speciesTags = (job.species || []).map(s => `<span style="background:var(--cream);padding:2px 6px;border-radius:3px;font-size:0.7rem;margin-right:3px;">${s}</span>`).join('');
+      const interestBtn = job.status !== 'filled'
+        ? '<button data-tmc-job-id="'+job.id+'" class="tmc-interest-pin-btn btn btn-outline btn-sm">I\'m Interested</button>'
+        : '<span style="font-size:0.7rem;color:#c0392b;font-weight:600;">Filled</span>';
+      return '<div style="border:1px solid var(--border);border-radius:6px;padding:0.75rem;margin-bottom:0.5rem;background:var(--white);">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem;">'
+        +'<strong style="font-size:0.875rem;">📍 '+job.region+'</strong>'
+        +'<span style="font-size:0.65rem;padding:2px 6px;border-radius:3px;background:'+color+';color:white;font-weight:600;">'+statusLabel+'</span>'
+        +'</div>'
+        +'<div style="margin-bottom:0.375rem;">'+speciesTags+'</div>'
+        +'<p style="font-size:0.8125rem;color:var(--text-mid);line-height:1.4;margin-bottom:0.5rem;">'+(job.desc||'')+'</p>'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;">'
+        +'<span style="font-size:0.7rem;color:var(--text-lt);">Posted '+job.posted_days_ago+' day'+(job.posted_days_ago !== 1 ? 's' : '')+' ago</span>'
+        +interestBtn
+        +'</div></div>';
+    }).join('');
+}
+
+async function expressInterestMap(jobId) {
+  const job = LIVE_JOBS.find(j => String(j.id) === String(jobId));
+  if (!job) { alert('Could not find that job. It may have just been filled or closed.'); return; }
+  // Bump the interest counter in the database
+  const newCount = (job.interest_count || 0) + 1;
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/jobs?id=eq.${encodeURIComponent(job.id)}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ interest_count: newCount, updated_at: new Date().toISOString() })
+    });
+    if (!r.ok) {
+      alert('Could not register your interest right now. Please try again, or email admin@australianhuntingassociation.com.au.');
+      return;
+    }
+    job.interest_count = newCount;
+    alert('Interest registered for the job in ' + job.region + '. The landholder will be notified.');
+  } catch (e) {
+    console.error('expressInterestMap', e);
+    alert('Connection error. Please try again.');
   }
 }
 

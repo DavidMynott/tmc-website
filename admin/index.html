@@ -46,7 +46,8 @@ body{font-family:'DM Sans',sans-serif;color:var(--text-dark);background:var(--cr
 
 /* STATS */
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0.75rem;margin-bottom:1.25rem;}
-.stat{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;box-shadow:var(--shadow);}
+.stat{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;box-shadow:var(--shadow);transition:transform 0.12s,box-shadow 0.12s,border-color 0.12s;}
+.stat:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.1);border-color:var(--gold);}
 .stat-num{font-size:1.75rem;font-weight:700;color:var(--green-mid);}
 .stat-label{font-size:0.7rem;color:var(--text-lt);text-transform:uppercase;letter-spacing:0.04em;margin-top:0.15rem;}
 .stat-num.warn{color:var(--gold);}
@@ -156,15 +157,16 @@ body{font-family:'DM Sans',sans-serif;color:var(--text-dark);background:var(--cr
 <div class="sidebar">
   <div class="sidebar-brand"><h2>AHA / TMC Admin</h2><p>Management Portal</p></div>
   <div class="sidebar-nav">
-    <div class="sidebar-item active" onclick="nav('dashboard',this)"><span class="icon">&#x1F4CA;</span>Dashboard</div>
-    <div class="sidebar-item" onclick="nav('members',this)"><span class="icon">&#x1F464;</span>AHA Members</div>
-    <div class="sidebar-item" onclick="nav('hunters',this)"><span class="icon">&#x1F3AF;</span>Hunter Profiles</div>
-    <div class="sidebar-item" onclick="nav('shooting',this)"><span class="icon">&#x1F3F9;</span>Shooting Reviews</div>
-    <div class="sidebar-item" onclick="nav('licences',this)"><span class="icon">&#x1F4DC;</span>Licence Reviews</div>
-    <div class="sidebar-item" onclick="nav('farmers',this)"><span class="icon">&#x1F33E;</span>Farmer Profiles</div>
-    <div class="sidebar-item" onclick="nav('jobs',this)"><span class="icon">&#x1F4CB;</span>Jobs</div>
-    <div class="sidebar-item" onclick="nav('emails',this)"><span class="icon">&#x2709;</span>Email Log</div>
-    <div class="sidebar-item" onclick="nav('quick',this)"><span class="icon">&#x26A1;</span>Quick Actions</div>
+    <div class="sidebar-item active" data-section="dashboard" onclick="nav('dashboard',this)"><span class="icon">&#x1F4CA;</span>Dashboard</div>
+    <div class="sidebar-item" data-section="members" onclick="nav('members',this)"><span class="icon">&#x1F464;</span>AHA Members</div>
+    <div class="sidebar-item" data-section="renewals" onclick="nav('renewals',this)"><span class="icon">&#x1F501;</span>Renewals Due</div>
+    <div class="sidebar-item" data-section="hunters" onclick="nav('hunters',this)"><span class="icon">&#x1F3AF;</span>Hunter Profiles</div>
+    <div class="sidebar-item" data-section="shooting" onclick="nav('shooting',this)"><span class="icon">&#x1F3F9;</span>Shooting Reviews</div>
+    <div class="sidebar-item" data-section="licences" onclick="nav('licences',this)"><span class="icon">&#x1F4DC;</span>Licence Reviews</div>
+    <div class="sidebar-item" data-section="farmers" onclick="nav('farmers',this)"><span class="icon">&#x1F33E;</span>Farmer Profiles</div>
+    <div class="sidebar-item" data-section="jobs" onclick="nav('jobs',this)"><span class="icon">&#x1F4CB;</span>Jobs</div>
+    <div class="sidebar-item" data-section="emails" onclick="nav('emails',this)"><span class="icon">&#x2709;</span>Email Log</div>
+    <div class="sidebar-item" data-section="quick" onclick="nav('quick',this)"><span class="icon">&#x26A1;</span>Quick Actions</div>
   </div>
   <div class="sidebar-footer">Logged in as David Mynott<br>admin@australianhuntingassociation.com.au</div>
 </div>
@@ -182,6 +184,19 @@ body{font-family:'DM Sans',sans-serif;color:var(--text-dark);background:var(--cr
         <button class="btn btn-primary" onclick="openAddMember()">+ Add Member</button>
       </div>
       <div class="card" style="padding:0;overflow-x:auto;" id="m-table"></div>
+    </div>
+    <div class="page" id="pg-renewals">
+      <div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
+        <select id="r-filter" onchange="loadRenewals()" style="padding:0.5rem 0.75rem;border:1px solid var(--border);border-radius:6px;font-size:0.8125rem;font-family:inherit;background:var(--white);">
+          <option value="due">Overdue &amp; due soon (next 30 days)</option>
+          <option value="overdue">Overdue only</option>
+          <option value="due_soon">Due soon only</option>
+          <option value="all">All active members</option>
+        </select>
+        <button class="btn btn-primary" onclick="loadRenewals()">Refresh</button>
+      </div>
+      <p style="font-size:0.8125rem;color:var(--text-lt);margin-bottom:1rem;">Members whose first free year is ending. This is a worklist only — no payments are taken automatically.</p>
+      <div class="card" style="padding:0;overflow-x:auto;" id="r-table"></div>
     </div>
     <div class="page" id="pg-hunters"><div class="search-bar"><input type="text" placeholder="Search hunters..." id="h-search" oninput="loadHunters()"><select id="h-filter" onchange="loadHunters()"><option value="">All</option><option value="live">Live</option><option value="incomplete">Incomplete</option><option value="suspended">Suspended</option></select></div><div class="card" style="padding:0;overflow-x:auto;" id="h-table"></div></div>
     <div class="page" id="pg-shooting"><div class="search-bar"><select id="s-filter" onchange="loadShootingReviews()"><option value="pending">Pending review</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="">All</option></select></div><div class="card" style="padding:0;overflow-x:auto;" id="s-table"></div></div>
@@ -218,8 +233,8 @@ async function U(t,id,d){
 async function D(t,id){return fetch(SB+"/rest/v1/"+t+"?id=eq."+id,{method:"DELETE",headers:H})}
 
 // NAV
-const titles={dashboard:"Dashboard",members:"AHA Members",hunters:"Hunter Profiles",shooting:"Shooting Reviews",licences:"Licence Reviews",farmers:"Farmer Profiles",jobs:"Jobs",emails:"Email Log",quick:"Quick Actions"};
-function nav(p,el){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById("pg-"+p)?.classList.add("active");document.querySelectorAll(".sidebar-item").forEach(s=>s.classList.remove("active"));if(el)el.classList.add("active");document.getElementById("page-title").textContent=titles[p]||p;var ta=document.getElementById("topbar-actions");if(p==="members"){ta.innerHTML="<button class='btn btn-primary' onclick='openAddMember()'>+ Add Member</button>";}else{ta.innerHTML="";};
+const titles={dashboard:"Dashboard",members:"AHA Members",renewals:"Renewals Due",hunters:"Hunter Profiles",shooting:"Shooting Reviews",licences:"Licence Reviews",farmers:"Farmer Profiles",jobs:"Jobs",emails:"Email Log",quick:"Quick Actions"};
+function nav(p,el,filter){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById("pg-"+p)?.classList.add("active");document.querySelectorAll(".sidebar-item").forEach(s=>s.classList.remove("active"));if(el){el.classList.add("active");}else{var si=document.querySelector('.sidebar-item[data-section="'+p+'"]');if(si)si.classList.add("active");}document.getElementById("page-title").textContent=titles[p]||p;var ta=document.getElementById("topbar-actions");if(p==="members"){ta.innerHTML="<button class='btn btn-primary' onclick='openAddMember()'>+ Add Member</button>";}else{ta.innerHTML="";}if(p==="members"&&typeof filter!=="undefined"){var mf=document.getElementById("m-filter");if(mf){mf.value=filter;if(typeof loadMembers==="function")loadMembers();}}if(p==="renewals"&&typeof loadRenewals==="function"){loadRenewals();}
 if(p==="dashboard")loadDash();if(p==="members")loadMembers();if(p==="hunters")loadHunters();if(p==="shooting")loadShootingReviews();if(p==="licences")loadLicenceReviews();if(p==="farmers")loadFarmers();if(p==="jobs")loadJobs();if(p==="emails")loadEmails()}
 
 function closeModal(){document.getElementById("modal-overlay").classList.remove("open")}
@@ -240,7 +255,7 @@ async function loadDash(){
   const ac=_m.filter(m=>m.status==="active").length,pe=_m.filter(m=>m.status==="pending_payment").length;
   const lh=_h.filter(h=>h.tmc_access).length,af=_f.filter(f=>f.account_active).length;
   const oj=_j.filter(j=>j.status==="open"||j.status==="open_national").length;
-  document.getElementById("dash-stats").innerHTML="<div class=stat><div class=stat-num>"+_m.length+"</div><div class=stat-label>AHA Members</div></div><div class=stat><div class=stat-num>"+ac+"</div><div class=stat-label>Active</div></div><div class=stat><div class='stat-num "+(pe>0?"warn":"")+"'>"+pe+"</div><div class=stat-label>Pending Payment</div></div><div class=stat><div class=stat-num>"+lh+"</div><div class=stat-label>TMC Hunters</div></div><div class=stat><div class=stat-num>"+af+"</div><div class=stat-label>Farmers</div></div><div class=stat><div class=stat-num>"+oj+"</div><div class=stat-label>Open Jobs</div></div>";
+  document.getElementById("dash-stats").innerHTML="<div class=stat style='cursor:pointer' onclick=\"nav('members',null,'')\"><div class=stat-num>"+_m.length+"</div><div class=stat-label>AHA Members</div></div><div class=stat style='cursor:pointer' onclick=\"nav('members',null,'active')\"><div class=stat-num>"+ac+"</div><div class=stat-label>Active</div></div><div class=stat style='cursor:pointer' onclick=\"nav('members',null,'pending_payment')\"><div class='stat-num "+(pe>0?"warn":"")+"'>"+pe+"</div><div class=stat-label>Pending Payment</div></div><div class=stat style='cursor:pointer' onclick=\"nav('hunters',null)\"><div class=stat-num>"+lh+"</div><div class=stat-label>TMC Hunters</div></div><div class=stat style='cursor:pointer' onclick=\"nav('farmers',null)\"><div class=stat-num>"+af+"</div><div class=stat-label>Farmers</div></div><div class=stat style='cursor:pointer' onclick=\"nav('jobs',null)\"><div class=stat-num>"+oj+"</div><div class=stat-label>Open Jobs</div></div>";
   document.getElementById("dash-panels").innerHTML="<div class=card><div class=card-header>Recent Members</div>"+(_m.length?_m.slice(0,5).map(m=>"<div style='display:flex;justify-content:space-between;padding:0.375rem 0;border-bottom:1px solid var(--cream);font-size:0.8125rem;'><span>"+d(m.full_name)+"</span><span class='status status-"+(m.status==="active"?"active":"pending")+"'>"+m.status+"</span></div>").join(""):"<p style='font-size:0.8125rem;color:var(--text-lt);padding:1rem 0;'>No members yet.</p>")+"</div><div class=card><div class=card-header>Recent Emails</div>"+(emails.length?emails.map(e=>"<div style='display:flex;justify-content:space-between;padding:0.375rem 0;border-bottom:1px solid var(--cream);font-size:0.8125rem;'><span>"+d(e.email_to)+"</span><span class='status status-"+(e.status==="sent"?"active":"lapsed")+"'>"+e.status+"</span></div>").join(""):"<p style='font-size:0.8125rem;color:var(--text-lt);padding:1rem 0;'>No emails yet.</p>")+"</div>";
 }
 
@@ -251,6 +266,23 @@ async function loadMembers(){
   _m=await G("aha_membership",p);
   let f=_m;if(s)f=f.filter(m=>(m.full_name||"").toLowerCase().includes(s)||(m.email||"").toLowerCase().includes(s)||(m.member_number||"").toLowerCase().includes(s));
   document.getElementById("m-table").innerHTML=f.length?"<table class=data-table><thead><tr><th>Member #</th><th>Name</th><th>Email</th><th>State</th><th>Status</th><th>Payment</th><th>Joined</th><th></th></tr></thead><tbody>"+f.map(m=>"<tr onclick=\"editMember('"+m.id+"')\"><td style='font-weight:600;font-size:0.75rem;'>"+d(m.member_number)+"</td><td>"+d(m.full_name)+"</td><td style='font-size:0.75rem;'>"+d(m.email)+"</td><td>"+d(m.state)+"</td><td><span class='status status-"+(m.status==="active"?"active":m.status==="pending_payment"?"pending":"lapsed")+"'>"+m.status+"</span></td><td><span class='status status-"+(m.payment_status==="paid"?"active":"pending")+"'>"+d(m.payment_status)+"</span></td><td style='font-size:0.75rem;'>"+fdate(m.joined_at)+"</td><td><button class='btn btn-outline btn-sm'>Edit</button></td></tr>").join("")+"</tbody></table>":"<p style='padding:2rem;text-align:center;color:var(--text-lt);'>No members found.</p>";
+}
+
+// RENEWALS
+async function loadRenewals(){
+  const fi=document.getElementById("r-filter")?.value||"due";
+  // Read from the aha_renewals_due view (created by add-renewal-date.sql).
+  let rows=await G("aha_renewals_due","select=*&order=renewal_date.asc");
+  if(!Array.isArray(rows))rows=[];
+  let f=rows;
+  if(fi==="due")f=rows.filter(r=>r.renewal_flag==="overdue"||r.renewal_flag==="due_soon");
+  else if(fi==="overdue")f=rows.filter(r=>r.renewal_flag==="overdue");
+  else if(fi==="due_soon")f=rows.filter(r=>r.renewal_flag==="due_soon");
+  // Make sure members are loaded so rows can open the member editor.
+  if(!_m||!_m.length){_m=await G("aha_membership","select=*");}
+  const flagBadge=fl=>fl==="overdue"?"<span class='status status-lapsed'>Overdue</span>":fl==="due_soon"?"<span class='status status-pending'>Due soon</span>":"<span class='status status-active'>Upcoming</span>";
+  const daysTxt=n=>(n===null||typeof n==="undefined")?"&mdash;":(n<0?Math.abs(n)+" days ago":n+" days");
+  document.getElementById("r-table").innerHTML=f.length?"<table class=data-table><thead><tr><th>Member #</th><th>Name</th><th>Email</th><th>State</th><th>Renewal date</th><th>When</th><th>Flag</th><th></th></tr></thead><tbody>"+f.map(function(r){var mm=_m.find(x=>x.member_number&&r.member_number&&x.member_number===r.member_number);var openAttr=mm?" onclick=\"editMember('"+mm.id+"')\" style='cursor:pointer'":"";return "<tr"+openAttr+"><td style='font-weight:600;font-size:0.75rem;'>"+d(r.member_number)+"</td><td>"+d(r.full_name)+"</td><td style='font-size:0.75rem;'>"+d(r.email)+"</td><td>"+d(r.state)+"</td><td style='font-size:0.75rem;'>"+fdate(r.renewal_date)+"</td><td style='font-size:0.75rem;'>"+daysTxt(r.days_until_renewal)+"</td><td>"+flagBadge(r.renewal_flag)+"</td><td>"+(mm?"<button class='btn btn-outline btn-sm'>Open</button>":"")+"</td></tr>";}).join("")+"</tbody></table>":"<p style='padding:2rem;text-align:center;color:var(--text-lt);'>No renewals in this range.</p>";
 }
 
 function editMember(id){
@@ -651,7 +683,12 @@ async function loadHunters(){
 
 function editHunter(id){
   const h=_h.find(x=>x.id===id);if(!h)return;
-  const sp=Array.isArray(h.species)?h.species.join(", "):"";
+  // Species can be stored as [{name, calibre}, ...] (new format from portal)
+  // or as ["Red fox", ...] (older format). Handle both.
+  let sp = "";
+  if (Array.isArray(h.species)) {
+    sp = h.species.map(s => (typeof s === "object" && s !== null) ? (s.name || "") : s).filter(Boolean).join(", ");
+  }
   openModal("<div class=modal-header><h2>Edit Hunter: "+d(h.display_name)+"</h2><button class=modal-close onclick=closeModal()>&times;</button></div>"
     +"<div style='background:var(--gold-bg);border:2px solid var(--gold);border-radius:var(--radius);padding:1rem;margin-bottom:1rem;'><h3 style='font-size:0.875rem;color:var(--gold);margin-bottom:0.75rem;'>Firearms Licence</h3>"
     +"<div class=form-row><div class=fg><label>Licence #</label><input id=eh-ln value='"+(h.licence_number||"")+"'></div><div class=fg><label>State</label><select id=eh-ls><option value=''>-</option>"+sel(states,h.licence_state)+"</select></div></div>"
@@ -659,14 +696,44 @@ function editHunter(id){
     +"<div class=form-row><div class=fg><label>Display Name</label><input id=eh-name value='"+((h.display_name||"").replace(/'/g,"&#39;"))+"'></div><div class=fg><label>Member #</label><input id=eh-mn value='"+(h.member_number||"")+"'></div></div>"
     +"<div class=form-row><div class=fg><label>Email</label><input id=eh-email value='"+(h.email||"")+"'></div><div class=fg><label>Phone</label><input id=eh-phone value='"+(h.phone||"")+"'></div></div>"
     +"<div class=form-row><div class=fg><label>Location</label><input id=eh-loc value='"+(h.location||"")+"'></div><div class=fg><label>State</label><select id=eh-state>"+sel(states,h.state)+"</select></div></div>"
-    +"<div class=form-row><div class=fg><label>Radius (km)</label><select id=eh-rad>"+sel(["200","400","600","800","1000"],String(h.service_radius_km||400))+"</select></div><div class=fg><label>Insurance</label><select id=eh-ins>"+sel(["none","individual","ssaa"],h.insurance_type)+"</select></div></div>"
-    +"<div class=fg><label>Bio</label><textarea id=eh-bio>"+(h.bio||"")+"</textarea></div>"
-    +"<div class=fg><label>Species (comma separated)</label><input id=eh-sp value='"+sp.replace(/'/g,"&#39;")+"'></div>"
+    +"<div class=form-row><div class=fg><label>Radius (km)</label><select id=eh-rad>"+sel(["200","400","600","800","1000"],String(h.service_radius_km||400))+"</select></div><div class=fg><label>Insurance</label><select id=eh-ins>"+sel(["","Individual policy","SSAA","None declared"],h.insurance_type||"")+"</select></div></div>"
+    +"<div class=fg><label>Bio</label><textarea id=eh-bio style='min-height:80px;'>"+(h.bio||"")+"</textarea></div>"
+    +"<div class=fg><label>Species (comma separated)</label><input id=eh-sp value='"+sp.replace(/'/g,"&#39;")+"'><p style='font-size:0.7rem;color:var(--text-lt);margin-top:0.2rem;'>e.g. Red fox, Feral pig, European rabbit &mdash; calibres are preserved when edited from the hunter portal</p></div>"
     +"<div class=form-row><div class=fg><label>Profile Status</label><select id=eh-ps>"+sel(["incomplete","live","flagged","suspended"],h.profile_status)+"</select></div><div class=fg><label>TMC Access</label><label class=toggle style='margin-top:1.25rem;'><input type=checkbox id=eh-tmc "+(h.tmc_access?"checked":"")+"><span class=toggle-slider></span></label></div></div>"
     +"<div class=modal-actions><button class='btn btn-danger btn-sm' onclick=\"if(confirm('Delete?'))delHunter('"+h.id+"')\">Delete</button><button class='btn btn-outline' onclick=closeModal()>Cancel</button><button class='btn btn-primary' onclick=\"saveHunter('"+h.id+"')\">Save</button></div>");
 }
 
-async function saveHunter(id){const sp=document.getElementById("eh-sp").value.split(",").map(s=>s.trim()).filter(Boolean);await U("hunter_profiles",id,{display_name:document.getElementById("eh-name").value,member_number:document.getElementById("eh-mn").value||null,email:document.getElementById("eh-email").value,phone:document.getElementById("eh-phone").value,location:document.getElementById("eh-loc").value,state:document.getElementById("eh-state").value,service_radius_km:parseInt(document.getElementById("eh-rad").value),insurance_type:document.getElementById("eh-ins").value,bio:document.getElementById("eh-bio").value||null,species:sp,profile_status:document.getElementById("eh-ps").value,tmc_access:document.getElementById("eh-tmc").checked,licence_number:document.getElementById("eh-ln").value||null,licence_state:document.getElementById("eh-ls").value||null,licence_expiry:document.getElementById("eh-le").value||null,licence_verified:document.getElementById("eh-lv").checked,updated_at:new Date().toISOString()});closeModal();loadHunters()}
+async function saveHunter(id){
+  const h=_h.find(x=>x.id===id)||{};
+  // Build species back as [{name, calibre}, ...], preserving calibres from
+  // the original record when the admin's edit kept the same names.
+  const existing = Array.isArray(h.species) ? h.species : [];
+  const existingByName = {};
+  existing.forEach(s => { if (typeof s === "object" && s && s.name) existingByName[s.name.toLowerCase()] = s.calibre || ""; });
+  const sp = document.getElementById("eh-sp").value.split(",").map(s => s.trim()).filter(Boolean)
+    .map(name => ({ name: name, calibre: existingByName[name.toLowerCase()] || "" }));
+  const r = await U("hunter_profiles", id, {
+    display_name:document.getElementById("eh-name").value,
+    member_number:document.getElementById("eh-mn").value||null,
+    email:document.getElementById("eh-email").value,
+    phone:document.getElementById("eh-phone").value,
+    location:document.getElementById("eh-loc").value,
+    state:document.getElementById("eh-state").value,
+    service_radius_km:parseInt(document.getElementById("eh-rad").value),
+    insurance_type:document.getElementById("eh-ins").value||null,
+    bio:document.getElementById("eh-bio").value||null,
+    species:sp,
+    profile_status:document.getElementById("eh-ps").value,
+    tmc_access:document.getElementById("eh-tmc").checked,
+    licence_number:document.getElementById("eh-ln").value||null,
+    licence_state:document.getElementById("eh-ls").value||null,
+    licence_expiry:document.getElementById("eh-le").value||null,
+    licence_verified:document.getElementById("eh-lv").checked,
+    updated_at:new Date().toISOString()
+  });
+  if(r&&r.ok){closeModal();loadHunters();showToast("Hunter profile saved \u2713");}
+  else{alert("Save failed.\n\nReason: "+(r&&r.message?r.message:"connection error")+"\n\nNothing was changed.");}
+}
 async function delHunter(id){await D("hunter_profiles",id);closeModal();loadHunters()}
 
 // =====================================================

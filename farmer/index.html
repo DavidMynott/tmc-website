@@ -198,7 +198,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--text-dark);background:var(--cr
       
       <div style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border);">
         <p style="font-size:0.8125rem;color:var(--text-lt);margin-bottom:0.5rem;">Don't have an account?</p>
-        <button class="btn btn-outline btn-full" onclick="showPage('signup')">Register My Property — Free</button>
+        <button class="btn btn-outline btn-full" onclick="showPage('signup')">Get Started — Free</button>
       </div>
     </div>
     
@@ -209,40 +209,51 @@ body{font-family:'DM Sans',sans-serif;color:var(--text-dark);background:var(--cr
   </div>
 </div>
 
-<!-- ===== SIGNUP ===== -->
+<!-- ===== SIGNUP STEP 1 — CAPTURE ===== -->
 <div class="page" id="page-signup">
   <div class="container container-narrow">
     <button class="btn btn-outline btn-sm" onclick="showPage('login')" style="margin-bottom:1rem;">← Back</button>
     <div class="card">
-      <div class="card-header">Create your landholder account</div>
-      <p style="font-size:0.8125rem;color:var(--text-lt);margin-bottom:1.25rem;">Free for all landholders. No membership or fees required.</p>
-      
+      <div class="card-header">Get started — it's free</div>
+      <p style="font-size:0.8125rem;color:var(--text-lt);margin-bottom:1.25rem;">Tell us who you are and we'll connect you with AHA-certified operators near you. No membership, no fees, no obligation. Takes 30 seconds.</p>
+
+      <div class="alert alert-error" id="signup-error" style="display:none;text-align:left;"></div>
+
       <div class="form-row">
         <div class="fg"><label>First Name *</label><input type="text" id="signup-first" placeholder="John"></div>
         <div class="fg"><label>Last Name *</label><input type="text" id="signup-last" placeholder="Smith"></div>
       </div>
+      <div class="fg"><label>Mobile *</label><input type="tel" id="signup-phone" placeholder="04XX XXX XXX"></div>
       <div class="fg"><label>Email *</label><input type="email" id="signup-email" placeholder="john@email.com.au"></div>
-      <div class="fg"><label>Phone *</label><input type="tel" id="signup-phone" placeholder="04XX XXX XXX"></div>
-      <div class="fg"><label>Property Name</label><input type="text" id="signup-property" placeholder="e.g. Sunrise Downs"></div>
-      <div class="form-row">
-        <div class="fg"><label>Property Region / Town *</label><input type="text" id="signup-region" placeholder="e.g. Toodyay, WA"></div>
-        <div class="fg"><label>State *</label><select id="signup-state"><option value="">Select</option><option>WA</option><option>NSW</option><option>VIC</option><option>QLD</option><option>SA</option><option>TAS</option><option>NT</option><option>ACT</option></select></div>
-      </div>
-      <div class="fg"><label>Property Size (approx)</label><select id="signup-size"><option value="">Select</option><option>Under 100 hectares</option><option>100–500 hectares</option><option>500–2,000 hectares</option><option>2,000–10,000 hectares</option><option>Over 10,000 hectares</option></select></div>
-      
-      <div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid var(--border);">
-        <div class="fg"><label>Create Password *</label><input type="password" id="signup-password" placeholder="At least 8 characters"></div>
-        <div class="fg"><label>Confirm Password *</label><input type="password" id="signup-password-confirm" placeholder="Re-enter password"></div>
+      <div class="fg"><label>State / Territory *</label><select id="signup-state"><option value="">Select</option><option>WA</option><option>NSW</option><option>VIC</option><option>QLD</option><option>SA</option><option>TAS</option><option>NT</option><option>ACT</option></select></div>
+
+      <button class="btn btn-primary btn-full" id="signup-capture-btn" onclick="captureLead()">Continue →</button>
+      <p style="font-size:0.75rem;color:var(--text-lt);margin-top:0.75rem;text-align:center;">By continuing you agree to be contacted by certified operators through The Marksmen Co.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SIGNUP STEP 2 — CREATE PORTAL LOGIN ===== -->
+<div class="page" id="page-create-login">
+  <div class="container container-narrow">
+    <div class="card">
+      <div style="width:48px;height:48px;background:var(--green-soft);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.25rem;">✓</div>
+      <div class="card-header" style="text-align:center;">Create your portal login</div>
+      <p style="font-size:0.8125rem;color:var(--text-lt);margin-bottom:1.25rem;text-align:center;">Thanks, <span id="create-login-name">there</span>! Set a password to access your portal. You'll add your property details once you're in.</p>
+
+      <div class="alert alert-error" id="create-login-error" style="display:none;text-align:left;"></div>
+
+      <div class="fg"><label>Create Password *</label><input type="password" id="signup-password" placeholder="At least 8 characters"></div>
+      <div class="fg"><label>Confirm Password *</label><input type="password" id="signup-password-confirm" placeholder="Re-enter password"></div>
+
+      <div style="margin-top:0.75rem;padding:0.875rem;background:var(--cream);border-radius:6px;">
+        <label style="display:flex;align-items:flex-start;gap:0.5rem;font-size:0.8125rem;color:var(--text-dark);cursor:pointer;">
+          <input type="checkbox" id="signup-terms-check" style="margin-top:0.2rem;flex-shrink:0;">
+          <span>I have read and accept the <a href="#" onclick="openFarmerTerms();return false;" style="color:var(--green-mid);font-weight:600;">Terms and Conditions</a>.</span>
+        </label>
       </div>
 
-      <div style="margin-top:0.75rem;padding:0.875rem;background:var(--cream);border-radius:6px;text-align:center;">
-        <p style="font-size:0.8125rem;color:var(--text-dark);margin-bottom:0.5rem;font-weight:600;">Before you register your property, please read and accept our Terms and Conditions.</p>
-        <button type="button" class="btn btn-outline btn-sm" onclick="openFarmerTerms()">📋 Read Terms & Conditions</button>
-        <p id="terms-accepted-note" style="font-size:0.75rem;color:var(--green-mid);margin-top:0.5rem;font-weight:600;display:none;">✓ Terms accepted</p>
-      </div>
-
-      <button class="btn btn-primary btn-full" id="signup-submit-btn" onclick="farmerSignup()" disabled style="opacity:0.5;cursor:not-allowed;">Register My Property & Enter Portal →</button>
-      <p style="font-size:0.75rem;color:var(--text-lt);margin-top:0.75rem;text-align:center;">Free for all landholders. No fees, no obligation. By registering you agree to be contacted by certified operators through The Marksmen Co.</p>
+      <button class="btn btn-primary btn-full" id="signup-submit-btn" onclick="farmerSignup()" style="margin-top:0.875rem;">Create Account & Enter Portal →</button>
     </div>
   </div>
 </div>
@@ -271,7 +282,14 @@ body{font-family:'DM Sans',sans-serif;color:var(--text-dark);background:var(--cr
         <h1 style="font-size:1.25rem;">Welcome, <span id="dash-name">Landholder</span></h1>
         <p style="color:var(--text-lt);font-size:0.8125rem;" id="dash-property"></p>
       </div>
-      <button class="btn btn-primary" onclick="showPage('post-job')">+ Post a New Job</button>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+        <button class="btn btn-outline" onclick="showPage('property-profile')">My Property Profile</button>
+        <button class="btn btn-primary" onclick="showPage('post-job')">+ Post a New Job</button>
+      </div>
+    </div>
+
+    <div class="alert alert-info" id="profile-nudge" style="display:none;">
+      <strong>Finish setting up your property.</strong> Add your property details so operators can see where you are and what you're dealing with. <a href="#" onclick="showPage('property-profile');return false;" style="color:var(--green-mid);font-weight:700;">Complete my property profile →</a>
     </div>
 
     <div class="stats-row">
@@ -308,6 +326,26 @@ body{font-family:'DM Sans',sans-serif;color:var(--text-dark);background:var(--cr
 
     <div class="alert alert-info">
       <strong>How it works:</strong> Post a job describing your pest problem. AHA-certified operators will express interest. Review their profiles, check their credentials, and select the operator you want to work with. Their contact details will be shared with you and yours with them. It's completely free.
+    </div>
+  </div>
+</div>
+
+<!-- ===== PROPERTY PROFILE ===== -->
+<div class="page" id="page-property-profile">
+  <div class="container container-narrow">
+    <button class="btn btn-outline btn-sm" onclick="showPage('dashboard')" style="margin-bottom:1rem;">← Back to Dashboard</button>
+    <div class="card">
+      <div class="card-header">My Property Profile</div>
+      <p style="font-size:0.8125rem;color:var(--text-lt);margin-bottom:1.25rem;">These details help operators understand your property and pest pressure. Your exact address is never shared — only your region/town.</p>
+
+      <div class="alert alert-success" id="profile-saved-note" style="display:none;">✓ Your property profile has been saved.</div>
+
+      <div class="fg"><label>Property Name</label><input type="text" id="profile-property" placeholder="e.g. Sunrise Downs"></div>
+      <div class="fg"><label>Property Region / Town *</label><input type="text" id="profile-region" placeholder="e.g. Toodyay, WA"></div>
+      <div class="fg"><label>Property Size (approx)</label><select id="profile-size"><option value="">Select</option><option>Under 100 hectares</option><option>100–500 hectares</option><option>500–2,000 hectares</option><option>2,000–10,000 hectares</option><option>Over 10,000 hectares</option></select></div>
+      <div class="fg"><label>About your property</label><p class="hint">Country type, terrain, access, livestock, ongoing pest issues — anything operators should know.</p><textarea id="profile-about" placeholder="e.g. Mixed sheep and cropping in open wheatbelt country with scrub along the creek line. Good vehicle access. Ongoing fox and rabbit pressure." style="min-height:80px;"></textarea></div>
+
+      <button class="btn btn-primary btn-full" onclick="savePropertyProfile()">Save Property Profile</button>
     </div>
   </div>
 </div>
@@ -417,7 +455,70 @@ body{font-family:'DM Sans',sans-serif;color:var(--text-dark);background:var(--cr
 // =====================================================
 let currentFarmer = null;
 let farmerJobs = [];
+let leadId = null;
+let leadInfo = {};
 let reviewingJobIndex = -1;
+
+// =====================================================
+// SUPABASE CONFIG
+// =====================================================
+const SUPABASE_URL = 'https://muqnduayrkuoxemmhqgr.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11cW5kdWF5cmt1b3hlbW1ocWdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5NDY1ODgsImV4cCI6MjA4MzUyMjU4OH0.jMmr_R56Pg21hjU53i7w2eAr-nAjP9oSnXTS4pK9gg0';
+
+async function sbQuery(table, query) {
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, {
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+    });
+    if (!r.ok) return { ok: false, status: r.status, message: await r.text() };
+    return { ok: true, data: await r.json() };
+  } catch (e) { return { ok: false, status: 0, message: e.message }; }
+}
+
+async function sbInsert(table, row) {
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(row)
+    });
+    if (!r.ok) return { ok: false, status: r.status, message: await r.text() };
+    const data = await r.json();
+    return { ok: true, data: data[0] || data };
+  } catch (e) { return { ok: false, status: 0, message: e.message }; }
+}
+
+async function sbUpdate(table, column, value, updates) {
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${column}=eq.${encodeURIComponent(value)}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(updates)
+    });
+    if (!r.ok) return { ok: false, status: r.status, message: await r.text() };
+    return { ok: true };
+  } catch (e) { return { ok: false, status: 0, message: e.message }; }
+}
+
+// Persist the logged-in farmer across tab refreshes
+function persistFarmer() {
+  try { sessionStorage.setItem('tmc_farmer', JSON.stringify(currentFarmer)); } catch (e) {}
+}
+function clearFarmer() {
+  try { sessionStorage.removeItem('tmc_farmer'); } catch (e) {}
+  currentFarmer = null;
+  farmerJobs = [];
+}
 
 // Sample hunter profiles that "express interest"
 const SAMPLE_HUNTERS = [
@@ -430,16 +531,67 @@ const SAMPLE_HUNTERS = [
 // =====================================================
 // FARMER LOGIN / SIGNUP
 // =====================================================
-function farmerLogin() {
-  const email = document.getElementById('login-email').value.trim();
+async function farmerLogin() {
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
   const password = document.getElementById('login-password').value;
-  if (!email) { document.getElementById('login-error').textContent = 'Please enter your email.'; document.getElementById('login-error').style.display = 'block'; return; }
-  if (!password) { document.getElementById('login-error').textContent = 'Please enter your password.'; document.getElementById('login-error').style.display = 'block'; return; }
-  
-  // Demo mode — any email + password works
-  currentFarmer = { first: 'Mark', last: 'Henderson', email: email, phone: '0418 999 888', property: 'Henderson Station', region: 'Toodyay, WA', state: 'WA' };
-  loadDemoJobs();
+  const errorEl = document.getElementById('login-error');
+  errorEl.style.display = 'none';
+  if (!email) { errorEl.textContent = 'Please enter your email.'; errorEl.style.display = 'block'; return; }
+  if (!password) { errorEl.textContent = 'Please enter your password.'; errorEl.style.display = 'block'; return; }
+
+  // Look up the farmer by email. (Note: password is not currently checked
+  // against a hash — same auth model as the hunter portal for now.
+  // Real auth is a separate build.)
+  const res = await sbQuery('farmer_profiles', `email=eq.${encodeURIComponent(email)}&select=*`);
+  if (!res.ok || !res.data || res.data.length === 0) {
+    errorEl.textContent = 'No account found with that email. Please register, or check the email you entered.';
+    errorEl.style.display = 'block';
+    return;
+  }
+  const f = res.data[0];
+  if (f.account_active === false) {
+    // Lead captured but never finished setting a password — resume step 2.
+    leadId = f.id;
+    leadInfo = { first: f.first_name, last: f.last_name, email: f.email, phone: f.phone || '', state: f.state || '' };
+    goToCreateLogin();
+    return;
+  }
+  currentFarmer = {
+    id: f.id,
+    first: f.first_name,
+    last: f.last_name,
+    email: f.email,
+    phone: f.phone || '',
+    property: f.property_name || '',
+    region: f.region || '',
+    state: f.state || '',
+    size: f.property_size || '',
+    about: f.property_about || ''
+  };
+  persistFarmer();
+  await loadFarmerJobsFromDB();
   enterDashboard();
+}
+
+// Pull this farmer's real jobs from Supabase
+async function loadFarmerJobsFromDB() {
+  if (!currentFarmer || !currentFarmer.id) { farmerJobs = []; return; }
+  const res = await sbQuery('jobs', `farmer_id=eq.${currentFarmer.id}&select=*&order=created_at.desc`);
+  if (!res.ok) { farmerJobs = []; return; }
+  // Map DB rows to the in-memory shape the dashboard expects
+  farmerJobs = (res.data || []).map(j => ({
+    id: j.id,
+    species: Array.isArray(j.species) ? j.species : (typeof j.species === 'string' ? JSON.parse(j.species || '[]') : []),
+    description: j.description || '',
+    region: j.region || currentFarmer.region,
+    urgency: j.urgency || '',
+    notes: j.notes || '',
+    status: j.status || 'open',
+    posted: j.created_at ? new Date(j.created_at).toLocaleDateString('en-AU', { day:'numeric', month:'short', year:'numeric' }) : 'Just now',
+    interested: [],
+    interestCount: j.interest_count || 0,
+    selectedHunterId: j.selected_hunter_id || null
+  }));
 }
 
 // =====================================================
@@ -570,42 +722,126 @@ function closeTermsModal() {
 function acceptTerms() {
   farmerTermsAccepted = true;
   farmerTermsAcceptedAt = new Date().toISOString();
-  const note = document.getElementById('terms-accepted-note');
-  if (note) note.style.display = 'block';
-  const submitBtn = document.getElementById('signup-submit-btn');
-  if (submitBtn) {
-    submitBtn.disabled = false;
-    submitBtn.style.opacity = '1';
-    submitBtn.style.cursor = 'pointer';
-  }
+  const check = document.getElementById('signup-terms-check');
+  if (check) check.checked = true;
   closeTermsModal();
 }
 
-function farmerSignup() {
+// STEP 1 — Capture the lead immediately. Writes to the DB on submit so the
+// lead is saved even if they never set a password. Stored as account_active:false
+// (a captured lead) until they complete step 2.
+async function captureLead() {
   const first = document.getElementById('signup-first').value.trim();
   const last = document.getElementById('signup-last').value.trim();
-  const email = document.getElementById('signup-email').value.trim();
+  const email = document.getElementById('signup-email').value.trim().toLowerCase();
   const phone = document.getElementById('signup-phone').value.trim();
-  const region = document.getElementById('signup-region').value.trim();
   const state = document.getElementById('signup-state').value;
-  const property = document.getElementById('signup-property').value.trim();
+  const errorEl = document.getElementById('signup-error');
+  errorEl.style.display = 'none';
+
+  if (!first || !last || !email || !phone || !state) {
+    errorEl.textContent = 'Please fill in all fields.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('signup-capture-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  // If a record already exists for this email, route appropriately.
+  const existing = await sbQuery('farmer_profiles', `email=eq.${encodeURIComponent(email)}&select=id,first_name,account_active`);
+  if (existing.ok && existing.data && existing.data.length > 0) {
+    const rec = existing.data[0];
+    if (rec.account_active) {
+      // Fully registered already — send them to sign in.
+      btn.disabled = false; btn.textContent = 'Continue →';
+      errorEl.textContent = 'An account already exists with that email. Please sign in instead.';
+      errorEl.style.display = 'block';
+      setTimeout(() => showPage('login'), 1200);
+      return;
+    }
+    // Lead exists but hasn't set a password — update their details and continue to step 2.
+    await sbUpdate('farmer_profiles', 'id', rec.id, { first_name: first, last_name: last, phone: phone, state: state });
+    leadId = rec.id;
+    leadInfo = { first, last, email, phone, state };
+    btn.disabled = false; btn.textContent = 'Continue →';
+    goToCreateLogin();
+    return;
+  }
+
+  // New lead — insert immediately.
+  const insertRes = await sbInsert('farmer_profiles', {
+    first_name: first,
+    last_name: last,
+    email: email,
+    phone: phone,
+    state: state,
+    account_active: false,
+    lead_captured_at: new Date().toISOString()
+  });
+  btn.disabled = false; btn.textContent = 'Continue →';
+
+  if (!insertRes.ok) {
+    errorEl.textContent = 'We could not save your details. Please try again, or email admin@themarksmenco.com.au.';
+    errorEl.style.display = 'block';
+    return;
+  }
+  leadId = insertRes.data.id;
+  leadInfo = { first, last, email, phone, state };
+  goToCreateLogin();
+}
+
+function goToCreateLogin() {
+  const nameEl = document.getElementById('create-login-name');
+  if (nameEl) nameEl.textContent = leadInfo.first || 'there';
+  showPage('create-login');
+}
+
+// STEP 2 — Set a password and activate the account, then enter the portal.
+async function farmerSignup() {
   const pw = document.getElementById('signup-password').value;
   const pwConfirm = document.getElementById('signup-password-confirm').value;
-  
-  if (!first || !last || !email || !phone || !region || !state) { alert('Please fill in all required fields.'); return; }
-  if (pw.length < 8) { alert('Password must be at least 8 characters.'); return; }
-  if (pw !== pwConfirm) { alert('Passwords do not match.'); return; }
-  if (!farmerTermsAccepted) { alert('Please read and accept the Terms and Conditions to continue.'); openFarmerTerms(); return; }
+  const termsChecked = document.getElementById('signup-terms-check').checked;
+  const errorEl = document.getElementById('create-login-error');
+  errorEl.style.display = 'none';
+
+  if (!leadId) { showPage('signup'); return; }
+  if (pw.length < 8) { errorEl.textContent = 'Password must be at least 8 characters.'; errorEl.style.display = 'block'; return; }
+  if (pw !== pwConfirm) { errorEl.textContent = 'Passwords do not match.'; errorEl.style.display = 'block'; return; }
+  if (!termsChecked) { errorEl.textContent = 'Please accept the Terms and Conditions to continue.'; errorEl.style.display = 'block'; return; }
+
   const termsAcceptedAt = farmerTermsAcceptedAt || new Date().toISOString();
 
-  // In production: create Supabase auth user + farmer profile
-  currentFarmer = {
-    first, last, email, phone,
-    property: property || first + "'s Property",
-    region, state,
+  const btn = document.getElementById('signup-submit-btn');
+  btn.disabled = true; btn.textContent = 'Creating account…';
+
+  // Activate the captured lead. (Password stored as-is — same auth model as the
+  // hunter portal for now; password-checked auth is a separate build.)
+  const upd = await sbUpdate('farmer_profiles', 'id', leadId, {
+    password: pw,
+    account_active: true,
     terms_version: FARMER_TERMS_VERSION,
     terms_accepted_at: termsAcceptedAt
+  });
+  btn.disabled = false; btn.textContent = 'Create Account & Enter Portal →';
+
+  if (!upd.ok) {
+    errorEl.textContent = 'We could not finish creating your account. Please email admin@themarksmenco.com.au and we\'ll sort it.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  currentFarmer = {
+    id: leadId,
+    first: leadInfo.first,
+    last: leadInfo.last,
+    email: leadInfo.email,
+    phone: leadInfo.phone || '',
+    property: '',
+    region: '',
+    state: leadInfo.state || ''
   };
+  persistFarmer();
   farmerJobs = [];
   enterDashboard();
 }
@@ -639,9 +875,59 @@ function loadDemoJobs() {
 
 function enterDashboard() {
   document.getElementById('dash-name').textContent = currentFarmer.first;
-  document.getElementById('dash-property').textContent = currentFarmer.property ? `${currentFarmer.property} — ${currentFarmer.region}` : currentFarmer.region;
+  document.getElementById('dash-property').textContent = currentFarmer.property ? `${currentFarmer.property} — ${currentFarmer.region}` : (currentFarmer.region || '');
+
+  // Pre-fill the property profile form with whatever we have
+  const pProp = document.getElementById('profile-property');
+  const pRegion = document.getElementById('profile-region');
+  const pSize = document.getElementById('profile-size');
+  const pAbout = document.getElementById('profile-about');
+  if (pProp) pProp.value = currentFarmer.property || '';
+  if (pRegion) pRegion.value = currentFarmer.region || '';
+  if (pSize) pSize.value = currentFarmer.size || '';
+  if (pAbout) pAbout.value = currentFarmer.about || '';
+
+  // Nudge them to complete their property profile if region is still blank
+  const nudge = document.getElementById('profile-nudge');
+  if (nudge) nudge.style.display = currentFarmer.region ? 'none' : 'block';
+
   renderJobs();
   showPage('dashboard');
+}
+
+// Save the in-portal property profile
+async function savePropertyProfile() {
+  if (!currentFarmer || !currentFarmer.id) { showPage('login'); return; }
+  const property = document.getElementById('profile-property').value.trim();
+  const region = document.getElementById('profile-region').value.trim();
+  const size = document.getElementById('profile-size').value;
+  const about = document.getElementById('profile-about').value.trim();
+
+  if (!region) { alert('Please enter your property region / town.'); return; }
+
+  const upd = await sbUpdate('farmer_profiles', 'id', currentFarmer.id, {
+    property_name: property || (currentFarmer.first + "'s Property"),
+    region: region,
+    property_size: size,
+    property_about: about
+  });
+  if (!upd.ok) {
+    alert('We could not save your property profile. Please try again, or email admin@themarksmenco.com.au.');
+    return;
+  }
+
+  currentFarmer.property = property || (currentFarmer.first + "'s Property");
+  currentFarmer.region = region;
+  currentFarmer.size = size;
+  currentFarmer.about = about;
+  persistFarmer();
+
+  const note = document.getElementById('profile-saved-note');
+  if (note) { note.style.display = 'block'; setTimeout(() => { note.style.display = 'none'; }, 3000); }
+  const nudge = document.getElementById('profile-nudge');
+  if (nudge) nudge.style.display = 'none';
+
+  document.getElementById('dash-property').textContent = `${currentFarmer.property} — ${currentFarmer.region}`;
 }
 
 // =====================================================
@@ -706,58 +992,77 @@ function renderJobs() {
   }
 }
 
-function submitJob() {
+async function submitJob() {
   const speciesChips = document.querySelectorAll('#job-species .species-chip.selected');
   const species = Array.from(speciesChips).map(c => c.dataset.species);
   const description = document.getElementById('job-description').value.trim();
   const region = document.getElementById('job-region').value.trim() || currentFarmer.region;
   const urgency = document.getElementById('job-urgency').value;
   const notes = document.getElementById('job-notes').value.trim();
-  
+
   if (species.length === 0) { alert('Please select at least one species.'); return; }
   if (!description) { alert('Please describe the problem.'); return; }
   if (!urgency) { alert('Please select an urgency level.'); return; }
-  
-  const newJob = {
-    id: farmerJobs.length + 1,
-    species,
-    description,
-    region,
-    urgency,
-    notes,
+  if (!currentFarmer || !currentFarmer.id) { alert('Session expired. Please sign in again.'); showPage('login'); return; }
+
+  const insertRes = await sbInsert('jobs', {
+    farmer_id: currentFarmer.id,
+    farmer_name: currentFarmer.first + ' ' + currentFarmer.last,
+    species: species,
+    description: description,
+    region: region,
+    state: currentFarmer.state || null,
+    urgency: urgency,
+    notes: notes || null,
+    status: 'open',
+    interest_count: 0
+  });
+  if (!insertRes.ok) {
+    alert('We could not post your job.' +
+      (insertRes.message ? '\n\nDetail: ' + insertRes.message.substring(0, 300) + '\n\n' : '\n\n') +
+      'Please try again, or email admin@themarksmenco.com.au.');
+    return;
+  }
+
+  const saved = insertRes.data;
+  // Add the new job to the in-memory list so it appears immediately
+  farmerJobs.unshift({
+    id: saved.id,
+    species: species,
+    description: description,
+    region: region,
+    urgency: urgency,
+    notes: notes,
     status: 'open',
     posted: 'Just now',
-    interested: []
-  };
-  
-  // Simulate some hunters expressing interest after a short delay
-  setTimeout(() => {
-    const relevantHunters = SAMPLE_HUNTERS.map((h, i) => i).filter(i => {
-      const h = SAMPLE_HUNTERS[i];
-      return species.some(s => h.species.includes(s));
-    });
-    newJob.interested = relevantHunters.slice(0, Math.min(3, relevantHunters.length));
-    renderJobs();
-  }, 500);
-  
-  farmerJobs.push(newJob);
-  
+    interested: [],
+    interestCount: 0,
+    selectedHunterId: null
+  });
+
   // Reset form
   document.querySelectorAll('#job-species .species-chip').forEach(c => c.classList.remove('selected'));
   document.getElementById('job-description').value = '';
   document.getElementById('job-region').value = '';
   document.getElementById('job-urgency').value = '';
   document.getElementById('job-notes').value = '';
-  
+
   renderJobs();
   showPage('dashboard');
+  alert('Your job is now live. Hunters in your region will see it on their map and can express interest. You\'ll see any responses on your dashboard.');
 }
 
-function closeJob(idx) {
-  if (confirm('Close this job? It will be removed from the platform.')) {
-    farmerJobs[idx].status = 'closed';
-    renderJobs();
+async function closeJob(idx) {
+  if (!confirm('Close this job? It will be removed from the platform.')) return;
+  const job = farmerJobs[idx];
+  if (!job || !job.id) return;
+  const upd = await sbUpdate('jobs', 'id', job.id, { status: 'closed', updated_at: new Date().toISOString() });
+  if (!upd.ok) {
+    alert('Could not close this job.' + (upd.message ? '\n\nDetail: ' + upd.message.substring(0, 200) : ''));
+    return;
   }
+  farmerJobs[idx].status = 'closed';
+  renderJobs();
 }
 
 // =====================================================
@@ -873,16 +1178,59 @@ function showPage(pageId) {
   window.scrollTo(0, 0);
   
   const nav = document.getElementById('nav-links');
-  if (pageId === 'login' || pageId === 'signup') {
+  if (pageId === 'login' || pageId === 'signup' || pageId === 'create-login') {
     nav.innerHTML = '<button class="nav-btn active" onclick="showPage(\'login\')">Sign In</button>';
   } else {
     nav.innerHTML = `
       <button class="nav-btn ${pageId==='dashboard'?'active':''}" onclick="showPage('dashboard')">Dashboard</button>
+      <button class="nav-btn ${pageId==='property-profile'?'active':''}" onclick="showPage('property-profile')">Property Profile</button>
       <button class="nav-btn ${pageId==='post-job'?'active':''}" onclick="showPage('post-job')">Post Job</button>
-      <button class="nav-btn" onclick="showPage('login')">Sign Out</button>
+      <button class="nav-btn" onclick="signOut()">Sign Out</button>
     `;
   }
 }
+
+function signOut() {
+  clearFarmer();
+  showPage('login');
+}
+
+// =====================================================
+// SESSION RESTORE — keep the farmer logged in across
+// tab refreshes / accidental closures.
+// =====================================================
+window.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const saved = sessionStorage.getItem('tmc_farmer');
+    if (saved) {
+      const f = JSON.parse(saved);
+      if (f && f.id && f.email) {
+        // Re-fetch the latest from DB in case anything changed admin-side
+        const res = await sbQuery('farmer_profiles', `id=eq.${encodeURIComponent(f.id)}&select=*`);
+        if (res.ok && res.data && res.data.length > 0) {
+          const fresh = res.data[0];
+          currentFarmer = {
+            id: fresh.id,
+            first: fresh.first_name,
+            last: fresh.last_name,
+            email: fresh.email,
+            phone: fresh.phone || '',
+            property: fresh.property_name || '',
+            region: fresh.region || '',
+            state: fresh.state || '',
+            size: fresh.property_size || '',
+            about: fresh.property_about || ''
+          };
+          await loadFarmerJobsFromDB();
+          enterDashboard();
+        } else {
+          // Account no longer exists — clear stale session
+          clearFarmer();
+        }
+      }
+    }
+  } catch (e) { console.error('session restore', e); }
+});
 </script>
 </body>
 </html>
