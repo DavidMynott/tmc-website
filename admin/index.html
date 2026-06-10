@@ -295,7 +295,7 @@ function editMember(id){
     +"<div class=form-row><div class=fg><label>Payment Ref</label><input id=em-pr value='"+(m.payment_ref||"")+"'></div><div class=fg><label>Square Order ID</label><input id=em-sq value='"+(m.square_order_id||"")+"'></div></div>"
     +"<div class=form-row><div class=fg><label>Period Start</label><input type=datetime-local id=em-ps value='"+(m.current_period_start?m.current_period_start.slice(0,16):"")+"'></div><div class=fg><label>Period End</label><input type=datetime-local id=em-pe value='"+(m.current_period_end?m.current_period_end.slice(0,16):"")+"'></div></div>"
     +"<div class=fg><label>Notes</label><textarea id=em-notes>"+(m.notes||"")+"</textarea></div>"
-    +"<div class=modal-actions>"+(m.status==="pending_payment"?"<button class='btn btn-success' onclick=\"activateMbr('"+m.id+"')\">Manually Activate &amp; Generate Email</button>":(m.status==="active"?"<button class='btn btn-outline btn-sm' onclick=\"reissueEmail('"+m.id+"')\">Re-issue Welcome Email</button>":""))+"<button class='btn btn-danger btn-sm' onclick=\"if(confirm('Delete?'))delMbr('"+m.id+"')\">Delete</button><button class='btn btn-outline' onclick=closeModal()>Cancel</button><button class='btn btn-primary' onclick=\"saveMbr('"+m.id+"')\">Save</button></div>");
+    +"<div class=modal-actions>"+(m.status==="pending_payment"?"<button class='btn btn-success' onclick=\"activateMbr('"+m.id+"')\">Activate &amp; Send Welcome Email</button>":(m.status==="active"?"<button class='btn btn-outline btn-sm' onclick=\"reissueEmail('"+m.id+"')\">Re-send Welcome Email</button>":""))+"<button class='btn btn-danger btn-sm' onclick=\"if(confirm('Delete?'))delMbr('"+m.id+"')\">Delete</button><button class='btn btn-outline' onclick=closeModal()>Cancel</button><button class='btn btn-primary' onclick=\"saveMbr('"+m.id+"')\">Save</button></div>");
 }
 
 async function saveMbr(id){
@@ -329,16 +329,40 @@ function showToast(text){
 
 // Re-issue the welcome email for an already-active member.
 // Same email content as the activation flow, but no DB changes.
-function reissueEmail(id){
+async function reissueEmail(id){
   const m=_m.find(x=>x.id===id);
   if(!m){alert("Member not found.");return;}
   if(!m.member_number){
     alert("This member doesn't have a member number yet. Activate them first.");
     return;
   }
+  if(!confirm("Re-send the welcome email to "+m.full_name+" ("+m.email+")?"))return;
   const periodEnd=m.current_period_end
     ?new Date(m.current_period_end)
     :new Date(Date.now()+365*24*60*60*1000);
+  // Auto-send via send-welcome-email; fall back to copy/paste popup on failure.
+  let sent=false, err="";
+  try{
+    const er=await fetch(SB+"/functions/v1/send-welcome-email",{
+      method:"POST",
+      headers:H,
+      body:JSON.stringify({
+        email:m.email,
+        full_name:m.full_name,
+        member_number:m.member_number,
+        expiry_date:periodEnd.toISOString().slice(0,10)
+      })
+    });
+    let ed={};
+    try{ed=await er.json();}catch(e){}
+    sent=er.ok&&(ed.success!==false);
+    if(!sent)err=ed.error||("status "+er.status);
+  }catch(e){err=e.message;}
+  if(sent){
+    alert("Welcome email re-sent to "+m.email+".");
+    return;
+  }
+  alert("Automatic send didn't work"+(err?" ("+err+")":"")+". Opening the copy/paste email window as a fallback.");
   showWelcomeEmailPopup({
     full_name:m.full_name,
     first_name:(m.full_name||"").split(" ")[0]||"there",
@@ -354,41 +378,51 @@ async function activateMbr(id){
   const m=_m.find(x=>x.id===id);
   if(!m){alert("Member not found.");return;}
 
-  // Step 1: which payment method?
-  const method=prompt(
-    "MANUAL ACTIVATION — "+m.full_name+"\n\n"+
-    "How did they pay?\n\n"+
-    "  bank_transfer   (BSB/account)\n"+
-    "  payid           (PayID)\n"+
-    "  manual          (cash / cheque / other)\n"+
-    "  square          (Square paid but webhook missed — paste order ID)\n\n"+
-    "Type one of: bank_transfer, payid, manual, square",
-    "bank_transfer"
+  // One-click free activation by default. Hold the choice to record a paid
+  // method only if needed (rare under the free first-year model).
+  const free=confirm(
+    "ACTIVATE — "+m.full_name+"\n\n"+
+    "Click OK to activate as a FREE first-year member, assign their AHA number, and email them automatically.\n\n"+
+    "(Click Cancel if you instead need to record a PAID method — bank transfer, PayID, etc.)"
   );
-  if(!method)return;
-  const cleanMethod=method.trim().toLowerCase();
-  if(["bank_transfer","payid","manual","square"].indexOf(cleanMethod)<0){
-    alert("Unknown method: "+method+"\nUse bank_transfer, payid, manual, or square.");
-    return;
-  }
 
-  // Step 2: Square order ID if Square method
-  let squareOrderId=null;
-  if(cleanMethod==="square"){
-    squareOrderId=prompt("Paste the Square Order ID for "+m.full_name+":\n(Square Dashboard \u2192 Transactions \u2192 the payment \u2192 order details)");
-    if(!squareOrderId)return;
-    squareOrderId=squareOrderId.trim();
-  }
-
-  // Step 3: optional reference (bank statement line / PayID confirmation)
+  let cleanMethod, squareOrderId=null, reference=null;
   const today=new Date().toLocaleDateString("en-AU",{day:"numeric",month:"short",year:"numeric"});
-  const reference=prompt("Payment reference (optional — bank statement line, PayID confirmation, etc.):",
-    cleanMethod==="bank_transfer"?"Bank transfer "+today:
-    cleanMethod==="payid"?"PayID "+today:
-    cleanMethod==="manual"?"Manual payment "+today:
-    "Square (manual entry)");
 
-  // Step 4: assign next AHA member number if they don't have one
+  if(free){
+    cleanMethod="free";
+    reference="Free first year "+today;
+  }else{
+    // Optional paid path
+    const method=prompt(
+      "RECORD A PAID ACTIVATION — "+m.full_name+"\n\n"+
+      "How did they pay?\n\n"+
+      "  bank_transfer   (BSB/account)\n"+
+      "  payid           (PayID)\n"+
+      "  manual          (cash / cheque / other)\n"+
+      "  square          (Square paid but webhook missed — paste order ID)\n\n"+
+      "Type one of: bank_transfer, payid, manual, square",
+      "bank_transfer"
+    );
+    if(!method)return;
+    cleanMethod=method.trim().toLowerCase();
+    if(["bank_transfer","payid","manual","square"].indexOf(cleanMethod)<0){
+      alert("Unknown method: "+method+"\nUse bank_transfer, payid, manual, or square.");
+      return;
+    }
+    if(cleanMethod==="square"){
+      squareOrderId=prompt("Paste the Square Order ID for "+m.full_name+":\n(Square Dashboard \u2192 Transactions \u2192 the payment \u2192 order details)");
+      if(!squareOrderId)return;
+      squareOrderId=squareOrderId.trim();
+    }
+    reference=prompt("Payment reference (optional — bank statement line, PayID confirmation, etc.):",
+      cleanMethod==="bank_transfer"?"Bank transfer "+today:
+      cleanMethod==="payid"?"PayID "+today:
+      cleanMethod==="manual"?"Manual payment "+today:
+      "Square (manual entry)");
+  }
+
+  // Assign next AHA member number if they don't have one
   let memberNumber=m.member_number;
   if(!memberNumber){
     const nums=_m.map(x=>x.member_number)
@@ -398,30 +432,33 @@ async function activateMbr(id){
     memberNumber="AHA-2026-"+String(next).padStart(5,"0");
   }
 
-  // Step 5: build the update payload
+  // Build the update payload. Free members use payment_status 'free_first_year'
+  // (paid members use 'paid'); neither trips the seatbelt unless method='square'
+  // without an order id.
   const now=new Date();
   const oneYear=new Date(now.getTime()+365*24*60*60*1000);
   const updates={
     payment_method:cleanMethod,
-    payment_status:"paid",
+    payment_status:(cleanMethod==="free"?"free_first_year":"paid"),
     status:"active",
     member_number:memberNumber,
     payment_reference:reference||null,
     activated_at:now.toISOString(),
     current_period_start:now.toISOString(),
-    current_period_end:oneYear.toISOString()
+    current_period_end:oneYear.toISOString(),
+    renewal_date:oneYear.toISOString().slice(0,10)
   };
   if(squareOrderId)updates.square_order_id=squareOrderId;
   const existingNotes=m.notes||"";
   updates.notes=(existingNotes?existingNotes+"\n":"")+
-    "Manually activated ("+cleanMethod+") "+today+" by admin";
+    (cleanMethod==="free"?"Activated FREE first year ":"Manually activated ("+cleanMethod+") ")+today+" by admin";
 
-  // Step 6: write to database, surface errors clearly
+  // Write to database, surface errors clearly
   const r=await U("aha_membership",id,updates);
   if(!r.ok){
     let msg=r.message||"";
     if(msg.indexOf("square_order_id")>=0||msg.indexOf("Payment proof")>=0){
-      alert("BLOCKED BY PAYMENT SAFETY:\n\nThis member is still on the Square payment rail and needs a Square Order ID. Either:\n\n\u2022 Re-run activation with method='square' and paste the order ID, OR\n\u2022 Re-run activation with method='bank_transfer' / 'payid' / 'manual' if they paid outside Square.");
+      alert("BLOCKED BY PAYMENT SAFETY:\n\nThis member is on the Square payment rail and needs a Square Order ID. Re-run and choose the PAID path with method='square' and the order ID, or activate as free / bank_transfer / payid / manual.");
     }else if(r.status===401||r.status===403){
       alert("Permission denied. Check you're signed into the admin portal.");
     }else{
@@ -430,7 +467,7 @@ async function activateMbr(id){
     return;
   }
 
-  // Step 7: ensure a certification row exists (empty - they still earn it)
+  // Ensure a certification row exists (empty - they still earn it)
   if(m.member_id){
     try{
       await fetch(SB+"/rest/v1/aha_certification",{
@@ -441,16 +478,42 @@ async function activateMbr(id){
     }catch(e){}
   }
 
-  // Step 8: show the welcome email popup ready to copy
-  showWelcomeEmailPopup({
-    full_name:m.full_name,
-    first_name:(m.full_name||"").split(" ")[0]||"there",
-    email:m.email,
-    member_number:memberNumber,
-    period_end:oneYear,
-    payment_method:cleanMethod,
-    reference:reference||""
-  });
+  // Auto-send the welcome email via the send-welcome-email function.
+  // Fall back to the copy/paste popup if it fails.
+  const expiryStr=oneYear.toISOString().slice(0,10);
+  let emailSent=false, emailErr="";
+  try{
+    const er=await fetch(SB+"/functions/v1/send-welcome-email",{
+      method:"POST",
+      headers:H,
+      body:JSON.stringify({
+        email:m.email,
+        full_name:m.full_name,
+        member_number:memberNumber,
+        expiry_date:expiryStr
+      })
+    });
+    let ed={};
+    try{ed=await er.json();}catch(e){}
+    emailSent=er.ok&&(ed.success!==false);
+    if(!emailSent)emailErr=ed.error||("status "+er.status);
+  }catch(e){emailErr=e.message;}
+
+  if(emailSent){
+    alert(m.full_name+" is now active.\nMember number: "+memberNumber+"\n\nWelcome email sent automatically to "+m.email+".");
+  }else{
+    // Auto-send failed — fall back to the manual copy/paste popup so you're never stuck.
+    alert("Member activated ("+memberNumber+"), but the automatic email didn't send"+(emailErr?" ("+emailErr+")":"")+".\n\nThe copy/paste email window will open as a fallback.");
+    showWelcomeEmailPopup({
+      full_name:m.full_name,
+      first_name:(m.full_name||"").split(" ")[0]||"there",
+      email:m.email,
+      member_number:memberNumber,
+      period_end:oneYear,
+      payment_method:cleanMethod,
+      reference:reference||""
+    });
+  }
 
   loadMembers();
 }
