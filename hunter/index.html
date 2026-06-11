@@ -1587,17 +1587,16 @@ function enterPortal() {
   // Persist the verified session so a refresh doesn't dump them back to the gate
   try { sessionStorage.setItem('tmc_member', JSON.stringify(currentMember)); } catch(e){}
 
-  // Load notifications
-  loadDemoNotifications();
-
-  // Pull real saved progress from Supabase, THEN render
+  // Pull real saved progress from Supabase, THEN render + build notifications
   loadMemberProgress().then(() => {
     renderModules();
     updateStats();
+    buildNotifications();
   });
 
   renderModules();
   updateStats();
+  buildNotifications();
   showPage('dashboard');
 }
 
@@ -2113,14 +2112,45 @@ async function expressInterestMap(jobId) {
 // =====================================================
 let notifications = [];
 
-function loadDemoNotifications() {
-  notifications = [
-    { id: 1, type: 'new_job', title: 'New job near you', body: 'Red fox & European rabbit — Toodyay, WA. Within 2 weeks.', time: '2 hours ago', unread: true, jobRegion: 'Toodyay, WA' },
-    { id: 2, type: 'new_job', title: 'New job near you', body: 'Feral pig — Moora, WA. Within a month.', time: '5 hours ago', unread: true, jobRegion: 'Moora, WA' },
-    { id: 3, type: 'selected', title: 'You\'ve been selected!', body: 'A farmer in York, WA has selected you for a fox control job. Check your Selected tab for contact details.', time: '1 day ago', unread: false, jobRegion: 'York, WA' },
-    { id: 4, type: 'new_job', title: 'Job open nationally', body: 'Wild dogs — Geraldton, WA. This job has been open for 7+ days and is now available to all operators.', time: '2 days ago', unread: true, jobRegion: 'Geraldton, WA' },
-    { id: 5, type: 'reminder', title: 'Complete your training', body: 'You have 4 Foundation modules remaining. Complete them to unlock your shooting qualification.', time: '3 days ago', unread: false },
-  ];
+function buildNotifications() {
+  // Real, honest notifications based on the member's actual progress.
+  // No fake jobs — only genuine status nudges. Items disappear as the
+  // member completes each step.
+  notifications = [];
+  let nid = 1;
+  const remaining = 6 - completedModules.length;
+
+  if (remaining > 0) {
+    notifications.push({
+      id: nid++, type: 'reminder', title: 'Complete your training',
+      body: 'You have ' + remaining + ' Foundation module' + (remaining === 1 ? '' : 's') +
+            ' remaining. Complete ' + (remaining === 1 ? 'it' : 'them') + ' to unlock your shooting qualification.',
+      time: '', unread: true
+    });
+  } else if (!handbookComplete) {
+    notifications.push({
+      id: nid++, type: 'reminder', title: 'Read the Marksmanship Handbook',
+      body: 'Foundation training done. Next: read the Marksmanship Handbook to unlock your shooting qualification.',
+      time: '', unread: true
+    });
+  } else if (currentMember && currentMember.shooting_test_status !== 'approved' && currentMember.shooting_test_status !== 'passed') {
+    notifications.push({
+      id: nid++, type: 'reminder', title: 'Upload your shooting qualification',
+      body: '5 shots within 75mm at 100m. Upload your target to complete your certification.',
+      time: '', unread: true
+    });
+  }
+
+  // Profile completion nudge
+  if (currentMember && currentMember.profile_status !== 'complete') {
+    notifications.push({
+      id: nid++, type: 'reminder', title: 'Complete your profile',
+      body: 'Finish your hunter profile so farmers can see your experience and select you for jobs.',
+      time: '', unread: true
+    });
+  }
+
+  updateNotifBadge();
 }
 
 function toggleNotifications(e) {
@@ -2150,16 +2180,17 @@ function renderNotifications() {
   const listEl = document.getElementById('notif-list');
   
   if (notifications.length === 0) {
-    listEl.innerHTML = '<div class="notif-empty">No notifications</div>';
+    listEl.innerHTML = '<div class="notif-empty">You\'re all up to date — nothing needs your attention right now.</div>';
     return;
   }
   
   listEl.innerHTML = notifications.map(n => {
     const icon = n.type === 'new_job' ? '📍' : n.type === 'selected' ? '✓' : '📋';
+    const timeLine = n.time ? `<div class="notif-time">${n.time}</div>` : '';
     return `<div class="notif-item ${n.unread ? 'unread' : ''}" onclick="handleNotifClick(${n.id})">
       <div class="notif-title">${icon} ${n.title}</div>
       <div class="notif-body">${n.body}</div>
-      <div class="notif-time">${n.time}</div>
+      ${timeLine}
     </div>`;
   }).join('');
 }
